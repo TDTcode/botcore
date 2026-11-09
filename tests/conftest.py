@@ -1,5 +1,6 @@
 import logging
 import sys
+import types
 
 import pytest
 
@@ -26,3 +27,34 @@ def _restore_discord_logger():
     yield
     logger.handlers[:] = handlers
     logger.propagate = propagate
+
+
+class FakeChannel:
+    """Collects what is sent to it."""
+    def __init__(self, id=1, name='chan'):
+        self.id = id
+        self.name = name
+        self.sent = []
+
+    async def send(self, content=None, **kwargs):
+        self.sent.append(content)
+        return types.SimpleNamespace(content=content, kwargs=kwargs)
+
+
+class FakeGuild:
+    def __init__(self, id=1, channels=(), roles=(), members=(), owner=None):
+        self.id = id
+        self.channels = list(channels)
+        self.roles = list(roles)
+        self._members = {m.id: m for m in members}
+        self.owner = owner
+        self.owner_id = getattr(owner, 'id', None)
+
+    def get_channel(self, cid):
+        return {c.id: c for c in self.channels}.get(cid)
+
+    def get_member(self, uid):
+        return self._members.get(uid)
+
+    async def fetch_member(self, uid):
+        return None
