@@ -4,12 +4,34 @@ import types
 
 import pytest
 
+from .. import testing
+from ..bot import BotCore
 from ..config import Config
 
 
 @pytest.fixture
 def config(tmp_path):
     return Config({'cmd_prefix': ['t$']}, root=tmp_path, name='test')
+
+
+class BotForTests(BotCore):
+    """A BotCore with the package/config given up front (no real bot package)."""
+
+
+@pytest.fixture
+def make_bot(config):
+    """Factory for bots with a fake connection (never logs in, so nothing needs closing)."""
+    def factory(cls=BotForTests, **kwargs):
+        kwargs.setdefault('config', config)
+        kwargs.setdefault('package', 'botcore.tests.nonexistent_bot')
+        return testing.make_bot(cls, **kwargs)
+
+    return factory
+
+
+@pytest.fixture
+def bot(make_bot):
+    return make_bot()
 
 
 @pytest.fixture
