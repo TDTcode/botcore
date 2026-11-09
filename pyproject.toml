@@ -1,0 +1,31 @@
+# Dependencies + tool config ONLY. There is deliberately no [build-system]:
+# botcore is vendored into each bot as `<bot>/botcore/` (a plain directory now, a
+# git submodule later) and imported relatively, not pip-installed.
+[project]
+name = "botcore"
+version = "0.1.0"
+description = "Shared foundation for the TDT Discord bots (TDTbot, wit_bot)"
+requires-python = ">=3.11"
+dependencies = [
+    "discord.py>=2.4",
+    "gitpython",
+    "humanize",
+    "pytz",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+# the parent of this directory must be importable so `import botcore` works
+pythonpath = [".."]
+
+[tool.uv]
+# supply-chain hygiene, same policy as TDTbot's pyproject
+exclude-newer = "14 days"
