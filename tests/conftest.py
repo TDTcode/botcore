@@ -4,6 +4,13 @@ import types
 
 import pytest
 
+from ..config import Config
+
+
+@pytest.fixture
+def config(tmp_path):
+    return Config({'cmd_prefix': ['t$']}, root=tmp_path, name='test')
+
 
 @pytest.fixture
 def fake_package(tmp_path, monkeypatch):
