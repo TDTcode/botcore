@@ -1,0 +1,5 @@
+# Commits to hide from `git blame` (pure formatting changes).
+# Use locally with: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Format with ruff format (double quotes)
+594f8e580017d00059cb908924d9d21776f15dcd
