@@ -7,7 +7,6 @@ from ..async_helpers import split_send
 from ..cog import AdminCog
 from ..helpers import find_channel
 
-
 logger = logging.getLogger('discord.' + __name__)
 
 
@@ -25,7 +24,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
         try:
             return [i for i in self.bot.guilds if i.name == guild][0]
         except IndexError:
-            await ctx.send('ERROR: server "{0}" not found.'.format(guild))
+            await ctx.send(f'ERROR: server "{guild}" not found.')
 
     @commands.command()
     async def channel_id(self, ctx, channel: discord.TextChannel = None, guild: str = None):
@@ -37,7 +36,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
             channel = find_channel(guild, channel)
         else:
             channel = ctx.channel
-        await ctx.send('Channel "{0.name}" has id {0.id}.'.format(channel))
+        await ctx.send(f'Channel "{channel.name}" has id {channel.id}.')
 
     @commands.command()
     async def member_id(self, ctx, member: str = None, guild: str = None):
@@ -52,7 +51,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
                 return
         else:
             member = ctx.author
-        await ctx.send('{0.name} has id {0.id}.'.format(member))
+        await ctx.send(f'{member.name} has id {member.id}.')
 
     @commands.command()
     async def reload_cogs(self, ctx, option=None):
@@ -79,7 +78,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
         """Print the bot's config to discord chat (secrets are left out)."""
         items = self.bot.config.public_items()
         if items:
-            msg = '\n'.join(["{:}: {:}".format(i, j) for i, j in items.items()])
+            msg = '\n'.join([f"{i}: {j}" for i, j in items.items()])
             await split_send(ctx, msg, style='```')
         else:
             await ctx.send("Param is empty.")
@@ -115,8 +114,8 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
                    for i in ['message_id', 'channel_id', 'guild_id']]
         if hasattr(msg, 'author'):
             a = msg.author
-            txt.append('author: {}'.format(a.display_name))
-            txt.append('author id: {0}'.format(a.id))
+            txt.append(f'author: {a.display_name}')
+            txt.append(f'author id: {a.id}')
         await split_send(ctx, txt)
 
     @commands.command()
@@ -127,7 +126,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
         else:
             channel = ctx.channel
         hist = [h async for h in channel.history(limit=n)]
-        msg = ["Item {0:d} {1.id}\n{1.content}".format(i + 1, m)
+        msg = [f"Item {i + 1:d} {m.id}\n{m.content}"
                for i, m in enumerate(hist)]
         if not msg:
             msg = ["No history available."]
@@ -142,7 +141,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
         else:
             channel = ctx.channel
         pins = await channel.pins()
-        msg = ["Item {0:d} {1.id}\n{1.content}".format(i + 1, m)
+        msg = [f"Item {i + 1:d} {m.id}\n{m.content}"
                for i, m in enumerate(pins)]
         if not msg:
             msg = ["No pins available."]
@@ -153,7 +152,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
     async def exec(self, ctx, *args):
         """<code> - Execute code. Items in `out` get printed to discord."""
         out = []
-        var_data = dict(out=out, self=self)  # noqa: F841
+        var_data = dict(out=out, self=self)  # noqa: F841  (read implicitly by exec below)
         cmd = ' '.join(args).strip().strip('`"\'')
         await ctx.send("Running the following code:\n```\n" + cmd + "\n```")
         exec(cmd)

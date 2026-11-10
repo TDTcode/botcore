@@ -31,7 +31,7 @@ def add_guild(bot, guild):
 def assert_least_privilege(bot, members=False, presences=False, message_content=True):
     """Assert the privileged-intent posture (the check wit_bot's privacy review relies on)."""
     intents = bot.intents
-    assert intents.members is members, 'members intent should be {0}'.format(members)
-    assert intents.presences is presences, 'presences intent should be {0}'.format(presences)
+    assert intents.members is members, f'members intent should be {members}'
+    assert intents.presences is presences, f'presences intent should be {presences}'
     assert intents.message_content is message_content, \
-        'message_content intent should be {0}'.format(message_content)
+        f'message_content intent should be {message_content}'

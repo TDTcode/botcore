@@ -22,7 +22,6 @@ import discord  # type: ignore
 
 from . import helpers
 
-
 logger = logging.getLogger('discord.' + __name__)
 
 
@@ -67,7 +66,7 @@ class EmojiRoles:
         bot = self.bot
         # ensure that the payload is valid
         if message_id is not None:
-            if getattr(payload, "message_id") != message_id:
+            if payload.message_id != message_id:
                 return
         # get the author of the reaction
         author = getattr(getattr(payload, "member", None), "id", None)
@@ -93,7 +92,7 @@ class EmojiRoles:
                         guild=guild, min_role=min_role, delete=delete, remove=remove)
             data = {i: j for i, j in data.items() if j is not None}
             msg = "Member is None object"
-            msg += '\n' + '\n'.join(['{}: {}'.format(i, j) for i, j in data.items()])
+            msg += '\n' + '\n'.join([f'{i}: {j}' for i, j in data.items()])
             logger.info(msg)
             return
         # check role requirements
@@ -108,9 +107,9 @@ class EmojiRoles:
         if emoji is None:
             emoji = payload.emoji
         if delete and debug:
-            logger.info('Delete (rxn): {}\n{}'.format(emoji, payload))
+            logger.info(f'Delete (rxn): {emoji}\n{payload}')
         if debug:
-            logger.info('emoji2role: {}\n\t\t{}'.format(emoji, emoji_dict))
+            logger.info(f'emoji2role: {emoji}\n\t\t{emoji_dict}')
         # compare the emoji to the keys in the emoji_dict
         keys = [i for i in emoji_dict if helpers.emotes_equal(i, emoji)]
         if len(keys) == 1:
@@ -129,7 +128,7 @@ class EmojiRoles:
                     await member.remove_roles(i)
             try:
                 if delete:
-                    logger.info('Delete (role): {}->{}->{}'.format(key, role0, role))
+                    logger.info(f'Delete (role): {key}->{role0}->{role}')
                     await member.remove_roles(role)
                 else:
                     # if we get here, we've uniquely matched the emoji to a role
@@ -141,8 +140,8 @@ class EmojiRoles:
                     await member.add_roles(role)
                 return role
             except AttributeError:
-                logger.info('Role attr err: {}->{}->{}'.format(key, role0, role))
+                logger.info(f'Role attr err: {key}->{role0}->{role}')
         elif len(keys) > 1:
-            logger.info('Multiple matches: {}'.format({i: emoji_dict[i] for i in keys}))
+            logger.info(f'Multiple matches: {({i: emoji_dict[i] for i in keys})}')
 
         return None

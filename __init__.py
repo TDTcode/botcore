@@ -10,8 +10,8 @@ See README.md for the API overview.
 """
 __version__ = '0.1.0'
 
-from .config import Config, Paths  # noqa: F401
-from .storage import DataContainer, PermaDict, IntPermaDict, UserConfig  # noqa: F401
-from .git_manage import GitManager  # noqa: F401
-from .cog import CoreCog, AdminCog  # noqa: F401
-from .bot import BotCore  # noqa: F401
+from .bot import BotCore
+from .cog import AdminCog, CoreCog
+from .config import Config, Paths
+from .git_manage import GitManager
+from .storage import DataContainer, IntPermaDict, PermaDict, UserConfig

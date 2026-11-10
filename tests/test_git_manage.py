@@ -48,7 +48,7 @@ def test_log_items_format_and_look_back(repos):
     assert 'first commit <Tester> [' + gm.head()[:7] + ']' in items[0]
     # timedelta and (naive and aware) datetime look-backs
     assert log_items(work, datetime.timedelta(days=1))
-    future = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1)
+    future = datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1)
     assert log_items(work, future) == []
     assert log_items(work, future.replace(tzinfo=None)) == []
 
@@ -70,7 +70,7 @@ class TestUpdate:
         assert result.ok and result.moved and result.replayed == []
         assert (result.before, result.after) == (before, origin.head.commit.hexsha)
         assert gm.head() == origin.head.commit.hexsha
-        assert result.summary() == 'Updated {0}..{1}.'.format(before[:7], gm.head()[:7])
+        assert result.summary() == f'Updated {before[:7]}..{gm.head()[:7]}.'
         assert result.notice() is None  # nothing worth telling the log channel
 
     def test_local_commits_are_rebased_and_reported(self, repos):
@@ -98,9 +98,9 @@ class TestUpdate:
         origin, work = repos
         commit(origin, 'a.txt', 'origin change', 'upstream change')
         for i in range(12):
-            commit(work, 'f{0}.txt'.format(i), str(i), 'local {0}'.format(i))
+            commit(work, f'f{i}.txt', str(i), f'local {i}')
         result = GitManager(work.working_tree_dir).update()
-        assert [s for _, s in result.replayed] == ['local {0}'.format(i) for i in range(12)]
+        assert [s for _, s in result.replayed] == [f'local {i}' for i in range(12)]
         notice = result.notice()
         assert 'rebased 12 local commit(s)' in notice and '... and 2 more' in notice
         assert 'local 0' in notice and 'local 9' in notice and 'local 10' not in notice

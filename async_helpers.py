@@ -19,7 +19,6 @@ import discord  # type: ignore
 
 from .helpers import localize, utcnow
 
-
 logger = logging.getLogger('discord.' + __name__)
 
 
@@ -59,7 +58,6 @@ async def sleep(dt):
     except discord.HTTPException:
         dt -= (datetime.datetime.now() - now).total_seconds()
         time.sleep(dt)
-    return
 
 
 async def admin_check(ctx=None, bot=None, author=None, guild=None):

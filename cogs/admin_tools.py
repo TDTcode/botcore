@@ -6,7 +6,6 @@ from discord.ext import commands  # type: ignore
 from ..cog import AdminCog
 from ..helpers import find_channel
 
-
 logger = logging.getLogger('discord.' + __name__)
 
 
@@ -31,7 +30,7 @@ class AdminTools(AdminCog, command_attrs=dict(hidden=True)):
             try:
                 guild = [i for i in self.bot.guilds if i.name == guild][0]
             except IndexError:
-                await ctx.send('ERROR: server "{0}" not found.'.format(guild))
+                await ctx.send(f'ERROR: server "{guild}" not found.')
                 return
         if channel:
             channel = find_channel(guild, channel)

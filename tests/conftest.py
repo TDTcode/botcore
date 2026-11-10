@@ -38,7 +38,7 @@ def bot(make_bot):
 def fake_package(tmp_path, monkeypatch):
     """Create an importable package ``fakepkg_<n>``; returns ``(name, root_path)``."""
     counter = fake_package.counter = getattr(fake_package, 'counter', 0) + 1
-    name = 'fakepkg_{0}'.format(counter)
+    name = f'fakepkg_{counter}'
     root = tmp_path / 'pkgs' / name
     root.mkdir(parents=True)
     (root / '__init__.py').write_text('')

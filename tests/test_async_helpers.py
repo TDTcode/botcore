@@ -4,8 +4,7 @@ import types
 
 import pytest
 
-from .. import async_helpers
-from .. import helpers
+from .. import async_helpers, helpers
 from .conftest import FakeChannel, FakeGuild
 
 

@@ -48,12 +48,10 @@ import pkgutil
 import discord  # type: ignore
 from discord.ext import commands  # type: ignore
 
-from . import async_helpers
-from . import helpers
+from . import async_helpers, helpers
 from .emoji_roles import EmojiRoles
 from .git_manage import GitManager
 from .storage import UserConfig, get_all_user_config_files
-
 
 logger = logging.getLogger('discord.' + __name__)
 
@@ -62,7 +60,7 @@ CORE_PACKAGE = __name__.rpartition('.')[0]
 
 
 def _utcnow():
-    return datetime.datetime.now(datetime.timezone.utc)
+    return datetime.datetime.now(datetime.UTC)
 
 
 class BotCore(commands.Bot):
@@ -112,7 +110,7 @@ class BotCore(commands.Bot):
     def default_config(cls):
         """Return the bot's ``Config`` (override; usually ``param.rc``)."""
         raise NotImplementedError(
-            'Pass config=... to {0}() or override {0}.default_config().'.format(cls.__name__))
+            f'Pass config=... to {cls.__name__}() or override {cls.__name__}.default_config().')
 
     @classmethod
     def package_name(cls):
@@ -282,7 +280,7 @@ class BotCore(commands.Bot):
             pass
 
     async def on_command_completion(self, ctx):
-        logger.debug('Command "{0.command}" invoked by {0.author}.'.format(ctx))
+        logger.debug(f'Command "{ctx.command}" invoked by {ctx.author}.')
 
     async def on_raw_reaction_add(self, payload):
         """Handle emoji reactions (see ``emoji_roles_enabled``)"""
@@ -334,11 +332,11 @@ class BotCore(commands.Bot):
             for g in self.guilds:
                 if g.id == gid:
                     return g
-            raise RuntimeError('Home guild {0} not found'.format(gid))
+            raise RuntimeError(f'Home guild {gid} not found')
         if len(self.guilds) == 1:
             return self.guilds[0]
-        raise RuntimeError('No home_guild_id configured and the bot is in {0} guilds'
-                           .format(len(self.guilds)))
+        raise RuntimeError(f'No home_guild_id configured and the bot is in {len(self.guilds)} guilds'
+                           )
 
     async def get_user_configs(self):
         files = get_all_user_config_files()

@@ -54,7 +54,7 @@ class DataContainer:
             return out
         except (NotImplementedError, KeyError):
             pass
-        raise KeyError('Could not find or generate "{0}".'.format(key))
+        raise KeyError(f'Could not find or generate "{key}".')
 
     def __setitem__(self, key, value):
         self.data[key] = value
@@ -69,9 +69,9 @@ class DataContainer:
 
     def _load_own_data(self):
         try:
-            with open(self.fn, 'r') as f:
+            with open(self.fn) as f:
                 return json.load(f)
-        except IOError:
+        except OSError:
             self._gen_data(None)
             self._save()
 

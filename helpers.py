@@ -11,7 +11,6 @@ import re
 
 import pytz  # type: ignore
 
-
 logger = logging.getLogger('discord.' + __name__)
 
 epoch = datetime.datetime(2000, 1, 1)
@@ -25,7 +24,7 @@ month = datetime.timedelta(days=30)
 
 def utcnow():
     """Naive UTC "now".  Same value as the deprecated ``datetime.utcnow()``."""
-    return datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    return datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
 
 
 def find_channel(guild, channel=None, default=None, aliases=None):
@@ -124,7 +123,7 @@ _filetypes = dict(jpg="image/jpeg",
 
 def parse_filetype(filepath: str, force_list=True):
     """Return ``[extension, mime-type]`` for a file name, or ``[]`` if unknown."""
-    ext = filepath.split('.')[-1]
+    ext = filepath.rsplit('.', maxsplit=1)[-1]
     try:
         return [ext, _filetypes[ext]]
     except KeyError:
@@ -183,7 +182,7 @@ def int_time(in_time=None, t0=None):
     if isinstance(t0, str) and t0.lower() == 'unix':
         t0 = 0
     if isinstance(t0, int):
-        t0 = datetime.datetime.fromtimestamp(t0, datetime.timezone.utc).replace(tzinfo=None)
+        t0 = datetime.datetime.fromtimestamp(t0, datetime.UTC).replace(tzinfo=None)
     return int((localize(in_time) - localize(t0)).total_seconds())
 
 

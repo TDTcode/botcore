@@ -182,8 +182,8 @@ class TestUpdateAndReload:
         r.update_and_reload(gm)
         assert len(r.notices) == 1
         notice = r.notices[0]
-        assert 'The update to {0} failed to import'.format(bad[:7]) in notice
-        assert 'SyntaxError' in notice and 'rolled back to {0}'.format(good[:7]) in notice
+        assert f'The update to {bad[:7]} failed to import' in notice
+        assert 'SyntaxError' in notice and f'rolled back to {good[:7]}' in notice
 
     def test_the_next_bot_gets_the_notices_and_the_runner_forgets_them(self, deployed):
         origin, name, work = deployed

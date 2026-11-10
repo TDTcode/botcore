@@ -374,7 +374,7 @@ class TestReady:
         bot.reissue_delay = 0
         channel = FakeChannel(9)
         bot.find_channel = lambda cid: channel if cid == 9 else None
-        now = datetime.datetime.now(datetime.timezone.utc)
+        now = datetime.datetime.now(datetime.UTC)
         bot.git = types.SimpleNamespace(
             last_updated=lambda: now - datetime.timedelta(minutes=1),
             log_items=lambda look_back=None: ['1 min ago: a change <me> [abc1234]'])
@@ -390,7 +390,7 @@ class TestReady:
         channel = FakeChannel(9)
         bot.find_channel = lambda cid: channel
         bot.git = types.SimpleNamespace(
-            last_updated=lambda: datetime.datetime.now(datetime.timezone.utc),
+            last_updated=lambda: datetime.datetime.now(datetime.UTC),
             log_items=lambda look_back=None: [])
         bot.reissue = types.SimpleNamespace(channel=types.SimpleNamespace(id=9))
         await bot.on_ready()

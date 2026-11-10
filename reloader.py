@@ -1,7 +1,7 @@
 """https://stackoverflow.com/questions/28101895/reloading-packages-and-their-submodules-recursively-in-python"""
+import importlib
 import os
 import types
-import importlib
 
 
 def reload_package(package):

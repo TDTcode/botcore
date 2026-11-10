@@ -3,8 +3,7 @@ import types
 
 import pytest
 
-from ..storage import (DataContainer, IntPermaDict, PermaDict, UserConfig,
-                       get_all_user_config_files)
+from ..storage import DataContainer, IntPermaDict, PermaDict, UserConfig, get_all_user_config_files
 
 
 class Container(DataContainer):

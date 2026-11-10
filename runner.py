@@ -43,7 +43,6 @@ from aiohttp.client_exceptions import ClientConnectorError  # type: ignore
 
 from . import log_init
 
-
 logger = log_init.logger
 
 #: a run shorter than this (seconds) is a crash loop: stop instead of restarting
@@ -117,7 +116,7 @@ class Runner:
             result = git.update()
         except Exception as e:
             logger.error('Update failed: %s', e)
-            self.notices.append('Update failed: {0}'.format(e))
+            self.notices.append(f'Update failed: {e}')
         else:
             logger.info(result.summary())
             notice = result.notice()
@@ -136,8 +135,8 @@ class Runner:
         git.rollback(before)
         self.purge_modules()
         logger.warning('Rolled back to the previous commit.')
-        self.notices.append('The update to {0} failed to import ({1}: {2}); rolled back to {3}.'
-                            .format(failed[:7], type(error).__name__, error, before[:7]))
+        self.notices.append(f'The update to {failed[:7]} failed to import ({type(error).__name__}: {error}); rolled back to {before[:7]}.'
+                            )
         return self.import_bot()
 
     # -- running ---------------------------------------------------------------

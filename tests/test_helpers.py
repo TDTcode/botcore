@@ -98,13 +98,13 @@ def test_emotes_equal():
 
 
 def test_int_time_round_trip():
-    t0 = datetime.datetime(2000, 1, 1, tzinfo=datetime.timezone.utc)
-    t = datetime.datetime(2000, 1, 2, 3, 4, 5, tzinfo=datetime.timezone.utc)
+    t0 = datetime.datetime(2000, 1, 1, tzinfo=datetime.UTC)
+    t = datetime.datetime(2000, 1, 2, 3, 4, 5, tzinfo=datetime.UTC)
     secs = helpers.int_time(t, t0)
     assert secs == 86400 + 3 * 3600 + 4 * 60 + 5
     back = helpers.seconds_to_datetime(secs, t0=datetime.datetime(2000, 1, 1))
     assert back == t
-    unix0 = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+    unix0 = datetime.datetime(1970, 1, 1, tzinfo=datetime.UTC)
     assert helpers.int_time(t, unix0) == int(t.timestamp())
 
 
@@ -124,7 +124,7 @@ def test_int_time_default_is_roughly_now():
 def test_utcnow_is_naive_and_matches_utc():
     now = helpers.utcnow()
     assert now.tzinfo is None
-    real = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+    real = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
     assert abs((real - now).total_seconds()) < 5
 
 
@@ -138,7 +138,7 @@ def test_parse_timezone():
 
 
 def test_localize_and_delocalize():
-    aware = datetime.datetime(2020, 5, 1, 12, tzinfo=datetime.timezone.utc)
+    aware = datetime.datetime(2020, 5, 1, 12, tzinfo=datetime.UTC)
     assert helpers.localize(aware) is aware
     assert helpers.delocalize(aware) == datetime.datetime(2020, 5, 1, 12)
     naive = datetime.datetime(2020, 5, 1, 12)

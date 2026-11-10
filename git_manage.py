@@ -33,7 +33,6 @@ import git  # type: ignore
 import humanize  # type: ignore
 import pytz  # type: ignore
 
-
 logger = logging.getLogger('discord.' + __name__)
 
 MAX_LISTED = 10  # most local commits listed in a notice
@@ -66,13 +65,12 @@ class UpdateResult:
     def summary(self):
         """One line for the person who ran the command."""
         if self.error:
-            return 'Update failed: {0} (still on {1}).'.format(self.error, self.after[:7])
+            return f'Update failed: {self.error} (still on {self.after[:7]}).'
         if not self.moved:
             return 'Already up to date.'
-        out = 'Updated {0}..{1}'.format(self.before[:7], self.after[:7])
+        out = f'Updated {self.before[:7]}..{self.after[:7]}'
         if self.replayed:
-            out += ', replaying {0} local commit(s) on top of {1}'.format(
-                len(self.replayed), self.upstream)
+            out += f', replaying {len(self.replayed)} local commit(s) on top of {self.upstream}'
         return out + '.'
 
     def notice(self):
@@ -82,12 +80,11 @@ class UpdateResult:
         fast-forward is already covered by the reboot announcement.
         """
         if self.error:
-            return 'Update failed: {0}\nStill on {1}; running the current code.'.format(
-                self.error, self.after[:7])
+            return f'Update failed: {self.error}\nStill on {self.after[:7]}; running the current code.'
         if self.replayed:
-            lines = ['  {0}  {1}'.format(sha, subject) for sha, subject in self.replayed[:MAX_LISTED]]
+            lines = [f'  {sha}  {subject}' for sha, subject in self.replayed[:MAX_LISTED]]
             if len(self.replayed) > MAX_LISTED:
-                lines.append('  ... and {0} more'.format(len(self.replayed) - MAX_LISTED))
+                lines.append(f'  ... and {len(self.replayed) - MAX_LISTED} more')
             return ('Update rebased {0} local commit(s) onto {1} ({2}..{3}); '
                     'their hashes have changed (old hashes below):\n{4}').format(
                         len(self.replayed), self.upstream, self.before[:7], self.after[:7],
@@ -189,7 +186,7 @@ def log_items(repo, look_back=None):
 
     ``look_back`` (datetime or timedelta) defaults to 7 days ago.
     """
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     if look_back is None:
         look_back = datetime.timedelta(days=7)
     if isinstance(look_back, datetime.timedelta):

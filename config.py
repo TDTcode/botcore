@@ -26,7 +26,6 @@ import logging
 import os
 from pathlib import Path
 
-
 logger = logging.getLogger('discord.' + __name__)
 
 DATA_DIR_ENV = 'BOT_DATA_DIR'
@@ -65,7 +64,7 @@ class Paths:
         return self
 
     def __repr__(self):
-        return 'Paths(root={0.root!s}, data={0.data!s}, logs={0.logs!s})'.format(self)
+        return f'Paths(root={self.root!s}, data={self.data!s}, logs={self.logs!s})'
 
 
 def default_prefixes(name):
@@ -131,9 +130,9 @@ class Config(dict):
         if not fn:
             return
         try:
-            with open(fn, 'r') as f:
+            with open(fn) as f:
                 out = json.load(f)
-        except IOError:
+        except OSError:
             return
         self.update(out)
 
@@ -163,10 +162,10 @@ class Config(dict):
 
     def _token_from_file(self, fn, literal_ok=False):
         try:
-            with open(fn, 'r') as f:
-                lines = filter(None, [i.split('#')[0].strip() for i in f.readlines()])
+            with open(fn) as f:
+                lines = filter(None, [i.split('#')[0].strip() for i in f])
                 lines = list(lines)
-        except IOError:
+        except OSError:
             if literal_ok:
                 self['token'] = fn
                 return self['token']
