@@ -6,17 +6,17 @@ from discord.ext import commands  # type: ignore
 from ..cog import AdminCog
 from ..helpers import find_channel
 
-logger = logging.getLogger('discord.' + __name__)
+logger = logging.getLogger("discord." + __name__)
 
 
-class AdminTools(AdminCog, command_attrs={'hidden': True}):
+class AdminTools(AdminCog, command_attrs={"hidden": True}):
     """Admin-only commands: reboot the bot, speak as the bot"""
 
     @commands.command()
     async def reboot(self, ctx):
         """Reboots this bot"""
         await ctx.send("Ok. I will reboot now.")
-        logger.info('\nRebooting\n\n\n\n')
+        logger.info("\nRebooting\n\n\n\n")
         self.bot.reissue = ctx
         # This exits the bot loop, allowing the runner's loop to take over
         await self.bot.close()

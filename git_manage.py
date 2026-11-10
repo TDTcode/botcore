@@ -24,6 +24,7 @@ the bot can say so in its log channel).  A rebase that cannot be completed
 edits are not destroyed, then re-syncs submodules so a bot's pinned ``botcore``
 goes back to the old pin as well.
 """
+
 import dataclasses
 import datetime
 import logging
@@ -33,20 +34,21 @@ import git  # type: ignore
 import humanize  # type: ignore
 import pytz  # type: ignore
 
-logger = logging.getLogger('discord.' + __name__)
+logger = logging.getLogger("discord." + __name__)
 
 MAX_LISTED = 10  # most local commits listed in a notice
 
 
 def _reason(error):
     """A one-line, length-limited description of a git error."""
-    text = (getattr(error, 'stderr', '') or str(error)).strip()
-    return ' '.join(text.split())[:300]
+    text = (getattr(error, "stderr", "") or str(error)).strip()
+    return " ".join(text.split())[:300]
 
 
 @dataclasses.dataclass
 class UpdateResult:
     """What ``GitManager.update`` did."""
+
     before: str
     after: str
     upstream: str = None
@@ -65,13 +67,13 @@ class UpdateResult:
     def summary(self):
         """One line for the person who ran the command."""
         if self.error:
-            return f'Update failed: {self.error} (still on {self.after[:7]}).'
+            return f"Update failed: {self.error} (still on {self.after[:7]})."
         if not self.moved:
-            return 'Already up to date.'
-        out = f'Updated {self.before[:7]}..{self.after[:7]}'
+            return "Already up to date."
+        out = f"Updated {self.before[:7]}..{self.after[:7]}"
         if self.replayed:
-            out += f', replaying {len(self.replayed)} local commit(s) on top of {self.upstream}'
-        return out + '.'
+            out += f", replaying {len(self.replayed)} local commit(s) on top of {self.upstream}"
+        return out + "."
 
     def notice(self):
         """Text for the log channel, or None if the update was routine.
@@ -80,15 +82,14 @@ class UpdateResult:
         fast-forward is already covered by the reboot announcement.
         """
         if self.error:
-            return f'Update failed: {self.error}\nStill on {self.after[:7]}; running the current code.'
+            return f"Update failed: {self.error}\nStill on {self.after[:7]}; running the current code."
         if self.replayed:
-            lines = [f'  {sha}  {subject}' for sha, subject in self.replayed[:MAX_LISTED]]
+            lines = [f"  {sha}  {subject}" for sha, subject in self.replayed[:MAX_LISTED]]
             if len(self.replayed) > MAX_LISTED:
-                lines.append(f'  ... and {len(self.replayed) - MAX_LISTED} more')
-            return ('Update rebased {} local commit(s) onto {} ({}..{}); '
-                    'their hashes have changed (old hashes below):\n{}').format(
-                        len(self.replayed), self.upstream, self.before[:7], self.after[:7],
-                        '\n'.join(lines))
+                lines.append(f"  ... and {len(self.replayed) - MAX_LISTED} more")
+            return (
+                "Update rebased {} local commit(s) onto {} ({}..{}); their hashes have changed (old hashes below):\n{}"
+            ).format(len(self.replayed), self.upstream, self.before[:7], self.after[:7], "\n".join(lines))
         return None
 
 
@@ -127,14 +128,14 @@ class GitManager:
         except TypeError:  # detached HEAD
             upstream = None
         if upstream is None:
-            result.error = 'no upstream branch to update from (detached HEAD or untracked branch)'
+            result.error = "no upstream branch to update from (detached HEAD or untracked branch)"
             return result
         result.upstream = upstream.name
         try:
             repo.remote(upstream.remote_name).fetch()
-            if not list(repo.iter_commits('HEAD..' + upstream.name)):
+            if not list(repo.iter_commits("HEAD.." + upstream.name)):
                 return result  # nothing new upstream
-            local = list(repo.iter_commits(upstream.name + '..HEAD'))
+            local = list(repo.iter_commits(upstream.name + "..HEAD"))
             try:
                 repo.git.rebase(upstream.name)
             except git.GitCommandError:
@@ -145,31 +146,32 @@ class GitManager:
             result.after = self.head()
             return result
         result.after = self.head()
-        result.replayed = [(c.hexsha[:7], c.message.strip().splitlines()[0] if c.message.strip() else '')
-                           for c in reversed(local)]
+        result.replayed = [
+            (c.hexsha[:7], c.message.strip().splitlines()[0] if c.message.strip() else "") for c in reversed(local)
+        ]
         try:
             self._sync_submodules()
         except git.GitCommandError as e:
-            result.error = 'submodule update failed: ' + _reason(e)
+            result.error = "submodule update failed: " + _reason(e)
         return result
 
     def _abort_rebase(self):
         git_dir = self.repo.git_dir
-        if any(os.path.isdir(os.path.join(git_dir, d)) for d in ('rebase-merge', 'rebase-apply')):
+        if any(os.path.isdir(os.path.join(git_dir, d)) for d in ("rebase-merge", "rebase-apply")):
             try:
-                self.repo.git.rebase('--abort')
+                self.repo.git.rebase("--abort")
             except git.GitCommandError:
-                logger.exception('Could not abort the rebase in %s', self.root)
+                logger.exception("Could not abort the rebase in %s", self.root)
 
     def rollback(self, sha):
         """Return to ``sha`` (from ``head()``) without discarding local edits."""
-        logger.warning('Rolling back %s to %s', self.root, sha[:7])
-        self.repo.git.reset('--keep', sha)
+        logger.warning("Rolling back %s to %s", self.root, sha[:7])
+        self.repo.git.reset("--keep", sha)
         self._sync_submodules()
 
     def _sync_submodules(self):
         if self.has_submodules():
-            self.repo.git.submodule('update', '--init', '--recursive')
+            self.repo.git.submodule("update", "--init", "--recursive")
 
     def log_items(self, look_back=None):
         """Formatted git log lines.  ``look_back`` is a datetime or a timedelta
@@ -200,8 +202,7 @@ def log_items(repo, look_back=None):
         return humanize.naturaltime(now - i.committed_datetime)
 
     fmt = "{:}: {:} <{:}> [{:}]"
-    return [fmt.format(dt(i), i.message.strip(), i.author.name, i.hexsha[:7])
-            for i in items]
+    return [fmt.format(dt(i), i.message.strip(), i.author.name, i.hexsha[:7]) for i in items]
 
 
 def last_updated(repo):

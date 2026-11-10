@@ -15,19 +15,18 @@ class Privacy(CoreCog):
     """
 
     def policy_path(self):
-        override = self.bot.config('privacy_file')
-        return Path(override) if override else self.bot.paths.root / 'PRIVACY.md'
+        override = self.bot.config("privacy_file")
+        return Path(override) if override else self.bot.paths.root / "PRIVACY.md"
 
-    @commands.command(aliases=['privacy', 'policy'])
+    @commands.command(aliases=["privacy", "policy"])
     async def privacy_policy(self, ctx):
         """Display the privacy policy in chat."""
         path = self.policy_path()
         try:
-            policy = path.read_text(encoding='utf-8')
+            policy = path.read_text(encoding="utf-8")
         except OSError:
-            url = self.bot.config('privacy_url')
-            await ctx.send('No privacy policy file is available.'
-                           + (' See: ' + url if url else ''))
+            url = self.bot.config("privacy_url")
+            await ctx.send("No privacy policy file is available." + (" See: " + url if url else ""))
             return
         await split_send(ctx, policy)
 

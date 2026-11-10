@@ -11,7 +11,7 @@ from ..config import Config
 
 @pytest.fixture
 def config(tmp_path):
-    return Config({'cmd_prefix': ['t$']}, root=tmp_path, name='test')
+    return Config({"cmd_prefix": ["t$"]}, root=tmp_path, name="test")
 
 
 class BotForTests(BotCore):
@@ -21,9 +21,10 @@ class BotForTests(BotCore):
 @pytest.fixture
 def make_bot(config):
     """Factory for bots with a fake connection (never logs in, so nothing needs closing)."""
+
     def factory(cls=BotForTests, **kwargs):
-        kwargs.setdefault('config', config)
-        kwargs.setdefault('package', 'botcore.tests.nonexistent_bot')
+        kwargs.setdefault("config", config)
+        kwargs.setdefault("package", "botcore.tests.nonexistent_bot")
         return testing.make_bot(cls, **kwargs)
 
     return factory
@@ -37,14 +38,14 @@ def bot(make_bot):
 @pytest.fixture
 def fake_package(tmp_path, monkeypatch):
     """Create an importable package ``fakepkg_<n>``; returns ``(name, root_path)``."""
-    counter = fake_package.counter = getattr(fake_package, 'counter', 0) + 1
-    name = f'fakepkg_{counter}'
-    root = tmp_path / 'pkgs' / name
+    counter = fake_package.counter = getattr(fake_package, "counter", 0) + 1
+    name = f"fakepkg_{counter}"
+    root = tmp_path / "pkgs" / name
     root.mkdir(parents=True)
-    (root / '__init__.py').write_text('')
+    (root / "__init__.py").write_text("")
     monkeypatch.syspath_prepend(str(root.parent))
     yield name, root
-    for mod in [m for m in sys.modules if m == name or m.startswith(name + '.')]:
+    for mod in [m for m in sys.modules if m == name or m.startswith(name + ".")]:
         del sys.modules[mod]
 
 
@@ -57,13 +58,13 @@ def _no_bytecode_cache(monkeypatch):
     so the stale cache was loaded and the tests failed (intermittently for the runner tests).  In real use an
     update lands long after the modules were compiled, so this cannot bite there.
     """
-    monkeypatch.setattr(sys, 'dont_write_bytecode', True)
+    monkeypatch.setattr(sys, "dont_write_bytecode", True)
 
 
 @pytest.fixture(autouse=True)
 def _restore_discord_logger():
     """Runner tests call init_logging, which edits the global 'discord' logger."""
-    logger = logging.getLogger('discord')
+    logger = logging.getLogger("discord")
     handlers, propagate = list(logger.handlers), logger.propagate
     yield
     logger.handlers[:] = handlers
@@ -72,7 +73,8 @@ def _restore_discord_logger():
 
 class FakeChannel:
     """Collects what is sent to it."""
-    def __init__(self, id=1, name='chan'):
+
+    def __init__(self, id=1, name="chan"):
         self.id = id
         self.name = name
         self.sent = []
@@ -89,7 +91,7 @@ class FakeGuild:
         self.roles = list(roles)
         self._members = {m.id: m for m in members}
         self.owner = owner
-        self.owner_id = getattr(owner, 'id', None)
+        self.owner_id = getattr(owner, "id", None)
 
     def get_channel(self, cid):
         return {c.id: c for c in self.channels}.get(cid)

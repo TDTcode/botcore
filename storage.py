@@ -11,6 +11,7 @@ Improvements that do not change formats: json is written atomically
 (temp file + rename) and the user-config directory is injected instead of being
 derived from ``__file__``.
 """
+
 import json
 import os
 import shelve
@@ -76,8 +77,8 @@ class DataContainer:
             self._save()
 
     def _save(self):
-        tmp = self.fn + '.tmp'
-        with open(tmp, 'w') as f:
+        tmp = self.fn + ".tmp"
+        with open(tmp, "w") as f:
             f.write(json.dumps(self.data, indent=4))
         os.replace(tmp, self.fn)
         self._file_data = self._load_own_data()
@@ -115,7 +116,7 @@ class PermaDict:
         self.file = shelve.open(self.fn)  # noqa: SIM115  (held open for the object's lifetime; see close())
 
     def close(self):
-        file = self.__dict__.pop('file', None)
+        file = self.__dict__.pop("file", None)
         if file is not None:
             file.sync()
             file.close()
@@ -171,6 +172,7 @@ class UserConfig(DataContainer):
     comes from, in order: the ``directory`` argument, ``UserConfig.directory``
     (set once by ``BotCore`` at start-up from ``bot.paths.users``).
     """
+
     directory = None
 
     def __init__(self, discord_user, guild=None, directory=None):
@@ -180,13 +182,15 @@ class UserConfig(DataContainer):
             user_id = discord_user.id
         directory = directory if directory is not None else type(self).directory
         if directory is None:
-            raise RuntimeError('UserConfig has no directory: pass directory=... or let '
-                               'BotCore set UserConfig.directory (bot.paths.users).')
+            raise RuntimeError(
+                "UserConfig has no directory: pass directory=... or let "
+                "BotCore set UserConfig.directory (bot.paths.users)."
+            )
         directory = os.fspath(directory)
         os.makedirs(directory, exist_ok=True)
         self.user = discord_user
         self.guild = guild
-        super().__init__(os.path.join(directory, str(user_id) + '.json'))
+        super().__init__(os.path.join(directory, str(user_id) + ".json"))
 
     def _gen_data(self, *args):
         return
@@ -196,5 +200,5 @@ def get_all_user_config_files(directory=None):
     """Paths of every per-user json file in ``directory`` (default ``UserConfig.directory``)."""
     directory = directory if directory is not None else UserConfig.directory
     if directory is None:
-        raise RuntimeError('No users directory configured.')
-    return glob(os.path.join(os.fspath(directory), '*.json'))
+        raise RuntimeError("No users directory configured.")
+    return glob(os.path.join(os.fspath(directory), "*.json"))

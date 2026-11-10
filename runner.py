@@ -31,6 +31,7 @@ Differences from the old loop:
 * ``-l/--logfile`` now overrides the config; ``--no-tracemalloc`` turns off the
   allocation tracing the old loop always enabled.
 """
+
 import argparse
 import asyncio
 import importlib
@@ -51,35 +52,29 @@ MIN_RUN_SECONDS = 5
 
 def build_parser(extend_parser=None):
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--config',
-                        default=None,
-                        type=str,
-                        help='Load given config file.')
-    parser.add_argument('-t', '--token',
-                        default=None,
-                        type=str,
-                        help='Use provided API token/file.')
-    parser.add_argument('-v', '--verbose',
-                        default=False,
-                        action='store_true',
-                        help="print all output, timestamps and logging information")
-    parser.add_argument('-l', '--logfile',
-                        type=str,
-                        default=None,
-                        help='Set filename of logfile')
-    parser.add_argument('--no-tracemalloc',
-                        default=False,
-                        action='store_true',
-                        help="don't trace memory allocations (tracing is on by default, "
-                             "for debugging tracebacks)")
+    parser.add_argument("-c", "--config", default=None, type=str, help="Load given config file.")
+    parser.add_argument("-t", "--token", default=None, type=str, help="Use provided API token/file.")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        default=False,
+        action="store_true",
+        help="print all output, timestamps and logging information",
+    )
+    parser.add_argument("-l", "--logfile", type=str, default=None, help="Set filename of logfile")
+    parser.add_argument(
+        "--no-tracemalloc",
+        default=False,
+        action="store_true",
+        help="don't trace memory allocations (tracing is on by default, for debugging tracebacks)",
+    )
     if extend_parser is not None:
         extend_parser(parser)
     return parser
 
 
 class Runner:
-    def __init__(self, package, argv=None, extend_parser=None, configure=None,
-                 bot_class_name='MainBot'):
+    def __init__(self, package, argv=None, extend_parser=None, configure=None, bot_class_name="MainBot"):
         """``package``: importable name of the bot (``__package__`` of its ``__main__``).
         ``extend_parser(parser)`` may add bot-specific arguments; ``configure(config, args)``
         may apply them to the config before the bot is built."""
@@ -94,13 +89,13 @@ class Runner:
     # -- module management ------------------------------------------------
     def import_bot(self):
         """Import (or re-import) the bot's ``param`` and ``bot`` modules."""
-        param = importlib.import_module(self.package + '.param')
-        bot_module = importlib.import_module(self.package + '.bot')
+        param = importlib.import_module(self.package + ".param")
+        bot_module = importlib.import_module(self.package + ".bot")
         return param, bot_module
 
     def purge_modules(self):
         """Forget every imported module of the bot package (including ``botcore``)."""
-        prefix = self.package + '.'
+        prefix = self.package + "."
         for name in [n for n in sys.modules if n == self.package or n.startswith(prefix)]:
             del sys.modules[name]
         importlib.invalidate_caches()
@@ -115,8 +110,8 @@ class Runner:
             before = git.head()
             result = git.update()
         except Exception as e:  # noqa: BLE001  (any update failure is logged and reported, never fatal)
-            logger.error('Update failed: %s', e)
-            self.notices.append(f'Update failed: {e}')
+            logger.error("Update failed: %s", e)
+            self.notices.append(f"Update failed: {e}")
         else:
             logger.info(result.summary())
             notice = result.notice()
@@ -127,16 +122,18 @@ class Runner:
         try:
             return self.import_bot()
         except Exception as e:
-            logger.exception('The updated code failed to import.')
+            logger.exception("The updated code failed to import.")
             if before is None or git.head() == before:
                 raise
             failed = git.head()
             error = e
         git.rollback(before)
         self.purge_modules()
-        logger.warning('Rolled back to the previous commit.')
-        self.notices.append(f'The update to {failed[:7]} failed to import '
-                            f'({type(error).__name__}: {error}); rolled back to {before[:7]}.')
+        logger.warning("Rolled back to the previous commit.")
+        self.notices.append(
+            f"The update to {failed[:7]} failed to import "
+            f"({type(error).__name__}: {error}); rolled back to {before[:7]}."
+        )
         return self.import_bot()
 
     # -- running ---------------------------------------------------------------
@@ -147,14 +144,15 @@ class Runner:
 
     def make_bot(self, bot_module, reissue, startup):
         notices, self.notices = self.notices, []
-        return getattr(bot_module, self.bot_class_name)(reissue=reissue, startup=startup,
-                                                        notices=notices)
+        return getattr(bot_module, self.bot_class_name)(reissue=reissue, startup=startup, notices=notices)
 
     def serve(self, bot, token):
         """Run ``bot`` until it stops.  Ctrl-C propagates as ``KeyboardInterrupt``."""
+
         async def runner():
             async with bot:
                 await bot.start(token)
+
         asyncio.run(runner())
 
     def run(self):
@@ -175,15 +173,18 @@ class Runner:
             if config.paths.overridden:
                 config.paths.ensure()
             kwargs = self.log_kwargs(args, config)
-            if kwargs.get('logfile'):
-                os.makedirs(os.path.dirname(os.path.abspath(kwargs['logfile'])), exist_ok=True)
+            if kwargs.get("logfile"):
+                os.makedirs(os.path.dirname(os.path.abspath(kwargs["logfile"])), exist_ok=True)
             # logging first: discord.py installs a NullHandler on the 'discord' logger, so
             # anything logged before init_logging (e.g. "no token") would be lost
             log_init.init_logging(**kwargs)
             token = config.read_token(args.token)
             if not token:
-                logger.error('No Discord token: use -t, set %s, or fill %s.',
-                             ' / '.join(config.token_env_names), config.dget('token_file'))
+                logger.error(
+                    "No Discord token: use -t, set %s, or fill %s.",
+                    " / ".join(config.token_env_names),
+                    config.dget("token_file"),
+                )
                 return 2
 
             bot = self.make_bot(bot_module, reissue, startup)

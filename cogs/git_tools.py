@@ -4,7 +4,7 @@ from ..async_helpers import git_log as send_git_log
 from ..cog import AdminCog
 
 
-class GitTools(AdminCog, command_attrs={'hidden': True}):
+class GitTools(AdminCog, command_attrs={"hidden": True}):
     """Git commands for the bot's own checkout"""
 
     @commands.command()
@@ -22,7 +22,7 @@ class GitTools(AdminCog, command_attrs={'hidden': True}):
     async def git(self, ctx):
         """Base function for git sub commands"""
         if ctx.invoked_subcommand is None:
-            await ctx.send('Invalid git command passed...')
+            await ctx.send("Invalid git command passed...")
 
     @git.command()
     async def pull(self, ctx):

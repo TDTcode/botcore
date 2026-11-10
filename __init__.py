@@ -8,7 +8,8 @@ tests.  Keep every import inside the core relative.
 
 See README.md for the API overview.
 """
-__version__ = '0.1.0'
+
+__version__ = "0.1.0"
 
 from .bot import BotCore
 from .cog import AdminCog, CoreCog

@@ -21,6 +21,7 @@ Each cog module still ends with the two-line v2 setup function::
     async def setup(bot):
         await bot.add_cog(Mine(bot))
 """
+
 import asyncio
 import logging
 
@@ -39,7 +40,7 @@ class CoreCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.logger = logging.getLogger('discord.' + type(self).__module__)
+        self.logger = logging.getLogger("discord." + type(self).__module__)
         self._after_ready_task = None
 
     # -- lifecycle -------------------------------------------------------
@@ -70,7 +71,7 @@ class CoreCog(commands.Cog):
         except asyncio.CancelledError:
             raise
         except Exception:
-            self.logger.exception('after_ready failed in %s', type(self).__name__)
+            self.logger.exception("after_ready failed in %s", type(self).__name__)
 
     async def after_ready(self):
         """Override: one-time start-up work that needs a connected bot."""
@@ -79,7 +80,7 @@ class CoreCog(commands.Cog):
     def channel(self, ref=None):
         """A channel by id/name/alias; default: the configured ``log_channel``."""
         if ref is None:
-            ref = self.bot.config('log_channel')
+            ref = self.bot.config("log_channel")
         return self.bot.find_channel(ref)
 
     @property

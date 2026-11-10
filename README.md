@@ -19,7 +19,7 @@ from .botcore import BotCore
 
 
 class MainBot(BotCore):
-    activity_name = 'your suggestions'
+    activity_name = "your suggestions"
     activity_type = discord.ActivityType.listening
 
     @classmethod
@@ -32,8 +32,9 @@ class MainBot(BotCore):
 from pathlib import Path
 from .botcore.config import Config
 
-rc = Config({'admin_role_ids': [123], 'home_guild_id': 456, 'ignore_list': ['lfg']},
-            root=Path(__file__).parent, name='tdt')
+rc = Config(
+    {"admin_role_ids": [123], "home_guild_id": 456, "ignore_list": ["lfg"]}, root=Path(__file__).parent, name="tdt"
+)
 ```
 
 ```python
@@ -133,12 +134,12 @@ from ..botcore import CoreCog
 
 
 class Hello(CoreCog):
-    async def after_ready(self):          # replaces on_ready + sleep(5) + _async_init
-        await self.log_channel.send('hello is up')
+    async def after_ready(self):  # replaces on_ready + sleep(5) + _async_init
+        await self.log_channel.send("hello is up")
 
     @commands.command()
     async def hi(self, ctx):
-        await ctx.send('hi')
+        await ctx.send("hi")
 
 
 async def setup(bot):
@@ -161,8 +162,9 @@ Use `botcore.testing` in a bot's own tests:
 
 ```python
 from .botcore import testing
+
 bot = testing.make_bot(MainBot)
-testing.assert_least_privilege(bot, members=True)   # TDT; wit: members=False
+testing.assert_least_privilege(bot, members=True)  # TDT; wit: members=False
 ```
 
 ## Compatibility rule

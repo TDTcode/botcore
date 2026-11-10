@@ -7,14 +7,14 @@ from ..async_helpers import split_send
 from ..cog import AdminCog
 from ..helpers import find_channel
 
-logger = logging.getLogger('discord.' + __name__)
+logger = logging.getLogger("discord." + __name__)
 
 
 async def _owner(ctx):
     return await ctx.bot.is_owner(ctx.author)
 
 
-class Debugging(AdminCog, command_attrs={'hidden': True}):
+class Debugging(AdminCog, command_attrs={"hidden": True}):
     """Cog designed for debugging the bot"""
 
     async def _find_guild(self, ctx, guild):
@@ -47,39 +47,39 @@ class Debugging(AdminCog, command_attrs={'hidden': True}):
         if member:
             member = guild.get_member_named(member)
             if member is None:
-                await ctx.send('ERROR: member not found.')
+                await ctx.send("ERROR: member not found.")
                 return
         else:
             member = ctx.author
-        await ctx.send(f'{member.name} has id {member.id}.')
+        await ctx.send(f"{member.name} has id {member.id}.")
 
     @commands.command()
     async def reload_cogs(self, ctx, option=None):
         """Reloads all cogs that were added as extensions ('pull' to git pull first)"""
         pulled = None
-        if option == 'pull':
+        if option == "pull":
             pulled = await self.bot.pull_code(ctx.channel)
             if not pulled.ok:  # don't reload half-updated code
                 await ctx.send(pulled.summary())
                 return
         extensions = list(self.bot.extensions)
-        msg = 'Reloading ' + ', '.join([i.split('.')[-1] for i in extensions])
+        msg = "Reloading " + ", ".join([i.split(".")[-1] for i in extensions])
         for i in extensions:
             await self.bot.reload_extension(i)
-        await ctx.send((pulled.summary() + '\n' if pulled is not None else '') + msg)
+        await ctx.send((pulled.summary() + "\n" if pulled is not None else "") + msg)
 
     @commands.command()
     async def print(self, ctx, *args):
         """Print text following command to terminal. This is useful for emojis."""
-        logger.info(' '.join(args))
+        logger.info(" ".join(args))
 
-    @commands.command(name='param', aliases=['config'])
+    @commands.command(name="param", aliases=["config"])
     async def param(self, ctx, *args):
         """Print the bot's config to discord chat (secrets are left out)."""
         items = self.bot.config.public_items()
         if items:
-            msg = '\n'.join([f"{i}: {j}" for i, j in items.items()])
-            await split_send(ctx, msg, style='```')
+            msg = "\n".join([f"{i}: {j}" for i, j in items.items()])
+            await split_send(ctx, msg, style="```")
         else:
             await ctx.send("Param is empty.")
 
@@ -87,7 +87,7 @@ class Debugging(AdminCog, command_attrs={'hidden': True}):
     async def reload_extension(self, ctx, name):
         """<name> - Reloads an extension"""
         await self.bot.reload_extension(name)
-        await ctx.send('Reloaded ' + name)
+        await ctx.send("Reloaded " + name)
 
     @commands.command()
     async def id_this(self, ctx):
@@ -95,7 +95,7 @@ class Debugging(AdminCog, command_attrs={'hidden': True}):
         ref = ctx.message.reference
         msg = ctx.message
         if ref:
-            if hasattr(ref, 'resolved'):
+            if hasattr(ref, "resolved"):
                 msg = ref.resolved
             else:
                 channel = self.bot.find_channel(ref.channel_id)
@@ -105,17 +105,17 @@ class Debugging(AdminCog, command_attrs={'hidden': True}):
                     msg = ref
                 else:
                     msg = await channel.fetch_message(ref.message_id)
-        if hasattr(msg, 'id'):
-            txt = ['message id: ' + str(msg.id),
-                   'channel id: ' + str(msg.channel.id),
-                   'guild id: ' + str(msg.guild.id)]
+        if hasattr(msg, "id"):
+            txt = ["message id: " + str(msg.id), "channel id: " + str(msg.channel.id), "guild id: " + str(msg.guild.id)]
         else:
-            txt = ['{}: {}'.format(i.replace('_', ' '), getattr(msg, i, 'unknown'))
-                   for i in ['message_id', 'channel_id', 'guild_id']]
-        if hasattr(msg, 'author'):
+            txt = [
+                "{}: {}".format(i.replace("_", " "), getattr(msg, i, "unknown"))
+                for i in ["message_id", "channel_id", "guild_id"]
+            ]
+        if hasattr(msg, "author"):
             a = msg.author
-            txt.append(f'author: {a.display_name}')
-            txt.append(f'author id: {a.id}')
+            txt.append(f"author: {a.display_name}")
+            txt.append(f"author id: {a.id}")
         await split_send(ctx, txt)
 
     @commands.command()
@@ -126,8 +126,7 @@ class Debugging(AdminCog, command_attrs={'hidden': True}):
         else:
             channel = ctx.channel
         hist = [h async for h in channel.history(limit=n)]
-        msg = [f"Item {i + 1:d} {m.id}\n{m.content}"
-               for i, m in enumerate(hist)]
+        msg = [f"Item {i + 1:d} {m.id}\n{m.content}" for i, m in enumerate(hist)]
         if not msg:
             msg = ["No history available."]
         await split_send(ctx, msg)
@@ -141,8 +140,7 @@ class Debugging(AdminCog, command_attrs={'hidden': True}):
         else:
             channel = ctx.channel
         pins = await channel.pins()
-        msg = [f"Item {i + 1:d} {m.id}\n{m.content}"
-               for i, m in enumerate(pins)]
+        msg = [f"Item {i + 1:d} {m.id}\n{m.content}" for i, m in enumerate(pins)]
         if not msg:
             msg = ["No pins available."]
         await split_send(ctx, msg)
@@ -152,14 +150,14 @@ class Debugging(AdminCog, command_attrs={'hidden': True}):
     async def exec(self, ctx, *args):
         """<code> - Execute code. Items in `out` get printed to discord."""
         out = []
-        var_data = {'out': out, 'self': self}  # noqa: F841  (read implicitly by exec below)
-        cmd = ' '.join(args).strip().strip('`"\'')
+        var_data = {"out": out, "self": self}  # noqa: F841  (read implicitly by exec below)
+        cmd = " ".join(args).strip().strip("`\"'")
         await ctx.send("Running the following code:\n```\n" + cmd + "\n```")
         exec(cmd)
         if out:
             n = len(str(len(out)))
-            fmt = '{:0' + str(n) + 'd}) `{:}`'
-            out = ['Outputs:'] + [fmt.format(i, o) for i, o in enumerate(out)]
+            fmt = "{:0" + str(n) + "d}) `{:}`"
+            out = ["Outputs:"] + [fmt.format(i, o) for i, o in enumerate(out)]
             await split_send(ctx, out)
 
 

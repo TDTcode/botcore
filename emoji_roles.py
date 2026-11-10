@@ -16,13 +16,14 @@ Fixes relative to the per-bot copies:
 * on a reaction *remove*, kwargs from one enrolment no longer leak into the
   next enrolment's call.
 """
+
 import logging
 
 import discord  # type: ignore
 
 from . import helpers
 
-logger = logging.getLogger('discord.' + __name__)
+logger = logging.getLogger("discord." + __name__)
 
 
 class EmojiRoles:
@@ -30,8 +31,8 @@ class EmojiRoles:
 
     def __init__(self, bot):
         self.bot = bot
-        self._rules = []        # [(args, kwargs), ...] as given to enroll()
-        self.dm_targets = {}    # member id -> (accept_string, target) for the DM-accept flow
+        self._rules = []  # [(args, kwargs), ...] as given to enroll()
+        self.dm_targets = {}  # member id -> (accept_string, target) for the DM-accept flow
 
     def enroll(self, *args, **kwargs):
         """Register a rule.  Arguments are those of ``assign`` after ``payload``:
@@ -48,13 +49,24 @@ class EmojiRoles:
         for args_, kwargs_ in self._rules:
             kwargs = dict(kwargs_)
             if delete:
-                kwargs['delete'] = True
+                kwargs["delete"] = True
             await self.assign(payload, *args_, **kwargs)
 
-    async def assign(self, payload, emoji_dict, emoji=None, message_id=None,
-                     member=None, guild=None, min_role=None, delete=False,
-                     remove=None, send_message=None, accept_string=None,
-                     target=None):
+    async def assign(
+        self,
+        payload,
+        emoji_dict,
+        emoji=None,
+        message_id=None,
+        member=None,
+        guild=None,
+        min_role=None,
+        delete=False,
+        remove=None,
+        send_message=None,
+        accept_string=None,
+        target=None,
+    ):
         """Handle one reaction.  Returns the role that was added/removed, or None.
 
         ``emoji_dict``   {emoji (str/id/name): role (id or name)}
@@ -71,11 +83,11 @@ class EmojiRoles:
         # get the author of the reaction
         author = getattr(getattr(payload, "member", None), "id", None)
         uid = getattr(payload, "user_id", None)
-        debug = uid is not None and uid == bot.config('emoji_debug_user')
+        debug = uid is not None and uid == bot.config("emoji_debug_user")
         # if the reaction is from the bot itself, ignore it
         if bot.user.id in [author, uid]:
             if debug:
-                logger.info('emoji2role: self return')
+                logger.info("emoji2role: self return")
             return
         # make sure we have a guild and member
         if guild is None:
@@ -91,11 +103,19 @@ class EmojiRoles:
                 member = await bot.get_or_fetch_user(payload.user_id, guild)
         # if member is None, we can't do anything, so log it
         if member is None:
-            data = {'payload': payload, 'emoji_dict': emoji_dict, 'emoji': emoji, 'message_id': message_id,
-                     'guild': guild, 'min_role': min_role, 'delete': delete, 'remove': remove}
+            data = {
+                "payload": payload,
+                "emoji_dict": emoji_dict,
+                "emoji": emoji,
+                "message_id": message_id,
+                "guild": guild,
+                "min_role": min_role,
+                "delete": delete,
+                "remove": remove,
+            }
             data = {i: j for i, j in data.items() if j is not None}
             msg = "Member is None object"
-            msg += '\n' + '\n'.join([f'{i}: {j}' for i, j in data.items()])
+            msg += "\n" + "\n".join([f"{i}: {j}" for i, j in data.items()])
             logger.info(msg)
             return
         # check role requirements
@@ -104,15 +124,15 @@ class EmojiRoles:
                 min_role = helpers.find_role(guild, min_role)
             if member.top_role < min_role:
                 if debug:
-                    logger.info('emoji2role: min_role return')
+                    logger.info("emoji2role: min_role return")
                 return
         # get the emoji from the payload
         if emoji is None:
             emoji = payload.emoji
         if delete and debug:
-            logger.info(f'Delete (rxn): {emoji}\n{payload}')
+            logger.info(f"Delete (rxn): {emoji}\n{payload}")
         if debug:
-            logger.info(f'emoji2role: {emoji}\n\t\t{emoji_dict}')
+            logger.info(f"emoji2role: {emoji}\n\t\t{emoji_dict}")
         # compare the emoji to the keys in the emoji_dict
         keys = [i for i in emoji_dict if helpers.emotes_equal(i, emoji)]
         if len(keys) == 1:
@@ -130,7 +150,7 @@ class EmojiRoles:
                     await member.remove_roles(old_role)
             try:
                 if delete:
-                    logger.info(f'Delete (role): {key}->{role0}->{role}')
+                    logger.info(f"Delete (role): {key}->{role0}->{role}")
                     await member.remove_roles(role)
                 else:
                     # if we get here, we've uniquely matched the emoji to a role
@@ -142,8 +162,8 @@ class EmojiRoles:
                     await member.add_roles(role)
                 return role
             except AttributeError:
-                logger.info(f'Role attr err: {key}->{role0}->{role}')
+                logger.info(f"Role attr err: {key}->{role0}->{role}")
         elif len(keys) > 1:
-            logger.info(f'Multiple matches: {({i: emoji_dict[i] for i in keys})}')
+            logger.info(f"Multiple matches: { ({i: emoji_dict[i] for i in keys}) }")
 
         return None

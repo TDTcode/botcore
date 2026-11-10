@@ -10,6 +10,7 @@ Differences from those copies:
   now pulls in ``channel`` automatically.
 * ``git_log`` takes the ``GitManager`` explicitly instead of a module global.
 """
+
 import asyncio
 import datetime
 import logging
@@ -19,10 +20,10 @@ import discord  # type: ignore
 
 from .helpers import localize, utcnow
 
-logger = logging.getLogger('discord.' + __name__)
+logger = logging.getLogger("discord." + __name__)
 
 
-async def split_send(channel, message, deliminator='\n', n=2000, style='', sopt=None):
+async def split_send(channel, message, deliminator="\n", n=2000, style="", sopt=None):
     """Split a message into chunks (each < ``n`` chars) and send them.
 
     ``message`` is a string (split on ``deliminator``) or a list of strings.
@@ -72,11 +73,11 @@ async def admin_check(ctx=None, bot=None, author=None, guild=None):
             raise ValueError("Either ctx or author must be specified")
         author = ctx.author
     if guild is None:
-        guild = getattr(ctx, 'guild', None)
+        guild = getattr(ctx, "guild", None)
     if bot is None:
-        bot = getattr(ctx, 'bot', None)
-    logger.debug('admin_check: %s (top role: %s)', author, getattr(author, "top_role", "NO_ROLE"))
-    is_admin = getattr(bot, 'is_admin', None)
+        bot = getattr(ctx, "bot", None)
+    logger.debug("admin_check: %s (top role: %s)", author, getattr(author, "top_role", "NO_ROLE"))
+    is_admin = getattr(bot, "is_admin", None)
     if is_admin is not None:
         return await is_admin(author, guild)
     if guild is not None and guild.owner == author:
@@ -98,7 +99,7 @@ async def wait_until(dt):
 
 async def git_log(channel, git, *args):
     """Print the git log of ``git`` (a ``GitManager``) to discord chat."""
-    await split_send(channel, git.log_items(), style='```')
+    await split_send(channel, git.log_items(), style="```")
 
 
 async def parse_payload(payload, bot, *fields):
@@ -110,9 +111,8 @@ async def parse_payload(payload, bot, *fields):
     """
     fields = list(fields)
     if not fields:
-        fields = ['guild', 'member']
-    requires = {'member': ['guild'],
-                'message': ['channel']}
+        fields = ["guild", "member"]
+    requires = {"member": ["guild"], "message": ["channel"]}
 
     for i in fields:
         add = requires.get(i, [])
@@ -125,7 +125,7 @@ async def parse_payload(payload, bot, *fields):
         try:
             out["guild"] = next(g for g in bot.guilds if g.id == payload.guild_id)
         except StopIteration:
-            out['guild'] = await bot.fetch_guild(payload.guild_id)
+            out["guild"] = await bot.fetch_guild(payload.guild_id)
     if "member" in fields:
         member = payload.member
         if not member:

@@ -5,13 +5,14 @@ difference from those copies is that ``find_channel`` no longer reads a global
 ``param`` module: the default channel and the named-channel aliases are passed
 in (``BotCore.find_channel`` does this for you from ``bot.config``).
 """
+
 import datetime
 import logging
 import re
 
 import pytz  # type: ignore
 
-logger = logging.getLogger('discord.' + __name__)
+logger = logging.getLogger("discord." + __name__)
 
 epoch = datetime.datetime(2000, 1, 1)
 second = datetime.timedelta(seconds=1)
@@ -51,13 +52,12 @@ def find_channel(guild, channel=None, default=None, aliases=None):
     except ValueError:
         pass
     try:
-        return next(i for i in guild.channels
-                if i.name.lower().strip() == channel.lower().strip())
+        return next(i for i in guild.channels if i.name.lower().strip() == channel.lower().strip())
     except StopIteration:
         pass
-    if channel.startswith('#'):
-        return find_channel(guild, channel.lstrip('#'), aliases=aliases)
-    if channel.startswith('<#') and channel.endswith('>'):
+    if channel.startswith("#"):
+        return find_channel(guild, channel.lstrip("#"), aliases=aliases)
+    if channel.startswith("<#") and channel.endswith(">"):
         return find_channel(guild, channel[2:-1], aliases=aliases)
     if aliases is not None and channel in aliases:
         return find_channel(guild, aliases[channel])
@@ -76,54 +76,57 @@ def find_role(guild, name):
 
 
 _regex = re.compile(
-        r'^(?:http|ftp)s?://'  # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-        r'(?::\d+)?'  # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    r"^(?:http|ftp)s?://"  # http:// or https://
+    r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|"  # domain...
+    r"localhost|"  # localhost...
+    r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
+    r"(?::\d+)?"  # optional port
+    r"(?:/?|[/?]\S+)$",
+    re.IGNORECASE,
+)
 
 
 def valid_url(url):
     return re.match(_regex, url) is not None
 
 
-_filetypes = {'jpg': "image/jpeg",
-              'jpeg': "image/jpeg",
-              'jpx': "image/jpx",
-              'png': "image/png",
-              'gif': "image/gif",
-              'webp': "image/webp",
-              'cr2': "image/x-canon-cr2",
-              'tif': "image/tiff",
-              'bmp': "image/bmp",
-              'jxr': "image/vnd.ms-photo",
-              'psd': "image/vnd.adobe.photoshop",
-              'ico': "image/x-icon",
-              'heic': "image/heic",
-              'mp4': "video/mp4",
-              'm4v': "video/x-m4v",
-              'mkv': "video/x-matroska",
-              'webm': "video/webm",
-              'mov': "video/quicktime",
-              'avi': "video/x-msvideo",
-              'wmv': "video/x-ms-wmv",
-              'mpg': "video/mpeg",
-              'mpeg': "video/mpeg",
-              'flv': "video/x-flv",
-              'mid': "audio/midi",
-              'mp3': "audio/mpeg",
-              'm4a': "audio/m4a",
-              'ogg': "audio/ogg",
-              'flac': "audio/x-flac",
-              'wav': "audio/x-wav",
-              'amr': "audio/amr",
-              }
+_filetypes = {
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "jpx": "image/jpx",
+    "png": "image/png",
+    "gif": "image/gif",
+    "webp": "image/webp",
+    "cr2": "image/x-canon-cr2",
+    "tif": "image/tiff",
+    "bmp": "image/bmp",
+    "jxr": "image/vnd.ms-photo",
+    "psd": "image/vnd.adobe.photoshop",
+    "ico": "image/x-icon",
+    "heic": "image/heic",
+    "mp4": "video/mp4",
+    "m4v": "video/x-m4v",
+    "mkv": "video/x-matroska",
+    "webm": "video/webm",
+    "mov": "video/quicktime",
+    "avi": "video/x-msvideo",
+    "wmv": "video/x-ms-wmv",
+    "mpg": "video/mpeg",
+    "mpeg": "video/mpeg",
+    "flv": "video/x-flv",
+    "mid": "audio/midi",
+    "mp3": "audio/mpeg",
+    "m4a": "audio/m4a",
+    "ogg": "audio/ogg",
+    "flac": "audio/x-flac",
+    "wav": "audio/x-wav",
+    "amr": "audio/amr",
+}
 
 
 def parse_filetype(filepath: str, force_list=True):
     """Return ``[extension, mime-type]`` for a file name, or ``[]`` if unknown."""
-    ext = filepath.rsplit('.', maxsplit=1)[-1]
+    ext = filepath.rsplit(".", maxsplit=1)[-1]
     try:
         return [ext, _filetypes[ext]]
     except KeyError:
@@ -137,31 +140,30 @@ def parse_filetype(filepath: str, force_list=True):
 def parse_message(message):
     """Summarise a message: urls, attachments (with types), content, and a type list"""
     out = {}
-    out['urls'] = [i for i in message.content.split(' ') if valid_url(i)]
+    out["urls"] = [i for i in message.content.split(" ") if valid_url(i)]
     try:
-        out['attachments'] = [[i, *parse_filetype(i.filename, force_list=True)]
-                              for i in message.attachments]
+        out["attachments"] = [[i, *parse_filetype(i.filename, force_list=True)] for i in message.attachments]
     except TypeError:
         logger.error(str(message.attachments))
         logger.error(str([parse_filetype(i.filename) for i in message.attachments]))
         raise
-    out['content'] = message.content
+    out["content"] = message.content
     _type = []
-    if out['urls']:
-        _type.append('url')
-    _type += [i[-1] for i in out['attachments']]
+    if out["urls"]:
+        _type.append("url")
+    _type += [i[-1] for i in out["attachments"]]
     if not _type:
-        _type = ['normal']
+        _type = ["normal"]
     _type = sorted(set(_type))
-    out['type'] = _type
+    out["type"] = _type
     return out
 
 
 def emotes_equal(a, b):
     """True if two emoji-ish things (str, id, PartialEmoji, ...) refer to the same emoji"""
-    alist = [a] + [getattr(a, attr, None) for attr in ['id', 'name']] + [str(a)]
+    alist = [a] + [getattr(a, attr, None) for attr in ["id", "name"]] + [str(a)]
     alist = [i for i in alist if i]
-    blist = [b] + [getattr(b, attr, None) for attr in ['id', 'name']] + [str(b)]
+    blist = [b] + [getattr(b, attr, None) for attr in ["id", "name"]] + [str(b)]
     blist = [i for i in blist if i]
     for i in alist:
         for j in blist:
@@ -179,7 +181,7 @@ def int_time(in_time=None, t0=None):
         in_time = utcnow()
     if t0 is None:
         t0 = epoch
-    if isinstance(t0, str) and t0.lower() == 'unix':
+    if isinstance(t0, str) and t0.lower() == "unix":
         t0 = 0
     if isinstance(t0, int):
         t0 = datetime.datetime.fromtimestamp(t0, datetime.UTC).replace(tzinfo=None)
@@ -197,33 +199,34 @@ def seconds_to_datetime(in_time, t0=None, localize=True):
     return dt
 
 
-_tz_abbreviations = {'hst': 'US/Hawaii',
-                     'hdt': 'US/Hawaii',
-                     'ht': 'US/Hawaii',
-                     'ahst': 'US/Alaska',
-                     'ahdt': 'US/Alaska',
-                     'at': 'US/Alaska',
-                     'pst': 'US/Pacific',
-                     'pdt': 'US/Pacific',
-                     'pt': 'US/Pacific',
-                     'mst': 'US/Mountain',
-                     'mdt': 'US/Mountain',
-                     'mt': 'US/Mountain',
-                     'cst': 'US/Central',
-                     'cdt': 'US/Central',
-                     'ct': 'US/Central',
-                     'est': 'US/Eastern',
-                     'edt': 'US/Eastern',
-                     'et': 'US/Eastern',
-                     'cet': 'Europe/Berlin',
-                     'cest': 'Europe/Berlin',
-                     'eet': 'Europe/Helsinki',
-                     'eest': 'Europe/Helsinki',
-                     'wet': 'Europe/Lisbon',
-                     'west': 'Europe/Lisbon',
-                     'bst': 'Europe/London',
-                     'gmt': 'Europe/London',
-                     }
+_tz_abbreviations = {
+    "hst": "US/Hawaii",
+    "hdt": "US/Hawaii",
+    "ht": "US/Hawaii",
+    "ahst": "US/Alaska",
+    "ahdt": "US/Alaska",
+    "at": "US/Alaska",
+    "pst": "US/Pacific",
+    "pdt": "US/Pacific",
+    "pt": "US/Pacific",
+    "mst": "US/Mountain",
+    "mdt": "US/Mountain",
+    "mt": "US/Mountain",
+    "cst": "US/Central",
+    "cdt": "US/Central",
+    "ct": "US/Central",
+    "est": "US/Eastern",
+    "edt": "US/Eastern",
+    "et": "US/Eastern",
+    "cet": "Europe/Berlin",
+    "cest": "Europe/Berlin",
+    "eet": "Europe/Helsinki",
+    "eest": "Europe/Helsinki",
+    "wet": "Europe/Lisbon",
+    "west": "Europe/Lisbon",
+    "bst": "Europe/London",
+    "gmt": "Europe/London",
+}
 
 
 def parse_timezone(tz, self_call=False, check_abbr=True):
@@ -236,9 +239,8 @@ def parse_timezone(tz, self_call=False, check_abbr=True):
         check_abbr = _tz_abbreviations
     if check_abbr and tz.lower() in check_abbr:
         return pytz.timezone(check_abbr[tz.lower()])
-    if not self_call and ' ' in tz:
-        return parse_timezone(tz.replace(' ', '_'), self_call=True,
-                              check_abbr=check_abbr)
+    if not self_call and " " in tz:
+        return parse_timezone(tz.replace(" ", "_"), self_call=True, check_abbr=check_abbr)
     return pytz.timezone(tz)
 
 
@@ -262,4 +264,4 @@ def delocalize(dt):
 
 def clean_string(string):
     """Remove all non-alphanumeric characters except spaces and underscores"""
-    return re.sub(r'[^\w\s]', '', string).strip().lower()
+    return re.sub(r"[^\w\s]", "", string).strip().lower()

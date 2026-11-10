@@ -32,6 +32,9 @@ pythonpath = [".."]
 target-version = "py311"  # keep in step with requires-python
 line-length = 120
 
+[tool.ruff.format]
+quote-style = "double"
+
 [tool.ruff.lint]
 select = [
     "F",      # pyflakes

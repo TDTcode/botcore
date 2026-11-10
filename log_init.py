@@ -1,6 +1,6 @@
 import logging
 
-logger = logging.getLogger('discord')
+logger = logging.getLogger("discord")
 
 
 # https://stackoverflow.com/a/35804945/2275975
@@ -36,9 +36,9 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
         return
         # raise AttributeError('{} already defined in logging module'.format(levelName))
     if hasattr(logging, methodName):
-        raise AttributeError(f'{methodName} already defined in logging module')
+        raise AttributeError(f"{methodName} already defined in logging module")
     if hasattr(logging.getLoggerClass(), methodName):
-        raise AttributeError(f'{methodName} already defined in logger class')
+        raise AttributeError(f"{methodName} already defined in logger class")
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
@@ -61,6 +61,7 @@ addLoggingLevel("PRINTV", 25)
 
 class CriticalExceptionFilter(logging.Filter):
     """Filter out critical exceptions"""
+
     def filter(self, record):
         return not record.exc_info or record.levelno != logging.CRITICAL
 
@@ -73,16 +74,16 @@ def init_logging(logfile=None, visual_log_level=logging.PRINTV, verbose=False, *
     for h in list(logger.handlers):
         logger.removeHandler(h)
     if logfile:
-        f_handler = logging.FileHandler(filename=logfile, encoding='utf-8', mode='a')
-        fmt = '%(asctime)s:%(levelname)s:%(name)s: %(message)s'
+        f_handler = logging.FileHandler(filename=logfile, encoding="utf-8", mode="a")
+        fmt = "%(asctime)s:%(levelname)s:%(name)s: %(message)s"
         f_handler.setFormatter(logging.Formatter(fmt))
         f_handler.setLevel(0)
         logger.addHandler(f_handler)
     c_handler = logging.StreamHandler()  # console/terminal handler
     c_handler.setLevel(visual_log_level)
     c_handler.addFilter(CriticalExceptionFilter())  # let stderr print errors to screen
-    c_handler.setFormatter(logging.Formatter('%(message)s'))  # only show the message
+    c_handler.setFormatter(logging.Formatter("%(message)s"))  # only show the message
     if verbose:
         c_handler.setLevel(0)
-        c_handler.setFormatter(logging.Formatter('%(levelname)s:%(name)s: %(message)s'))
+        c_handler.setFormatter(logging.Formatter("%(levelname)s:%(name)s: %(message)s"))
     logger.addHandler(c_handler)
