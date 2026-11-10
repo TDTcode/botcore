@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# botcore is vendored into each bot as `<bot>/botcore/` and imported as `botcore`, and the tests use
+# relative imports (`from .. import testing`).  So the repo must be checked out into a directory
+# *named* botcore, with its parent importable (pyproject.toml sets pythonpath = [".."]).
+env:
+  UV_LOCKED: "1"  # fail if uv.lock is out of date with pyproject.toml, rather than silently re-resolving
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: botcore
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: botcore
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: botcore/uv.lock
+      - run: uv sync
+      - run: uv run ruff check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]  # requires-python is >=3.11
+    defaults:
+      run:
+        working-directory: botcore
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: botcore
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: botcore/uv.lock
+          python-version: ${{ matrix.python-version }}
+      - run: uv sync
+      - run: uv run pytest
