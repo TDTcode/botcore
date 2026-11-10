@@ -49,6 +49,18 @@ def fake_package(tmp_path, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _no_bytecode_cache(monkeypatch):
+    """Don't write ``.pyc`` files, so rewriting a module and re-importing it always sees the new source.
+
+    Python validates a ``.pyc`` by the source's mtime (whole seconds) and size.  The reload tests rewrite a
+    module within the same second as its first import, and ``VERSION = 1`` -> ``VERSION = 2`` is the same size,
+    so the stale cache was loaded and the tests failed (intermittently for the runner tests).  In real use an
+    update lands long after the modules were compiled, so this cannot bite there.
+    """
+    monkeypatch.setattr(sys, 'dont_write_bytecode', True)
+
+
+@pytest.fixture(autouse=True)
 def _restore_discord_logger():
     """Runner tests call init_logging, which edits the global 'discord' logger."""
     logger = logging.getLogger('discord')
