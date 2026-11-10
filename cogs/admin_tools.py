@@ -9,7 +9,7 @@ from ..helpers import find_channel
 logger = logging.getLogger('discord.' + __name__)
 
 
-class AdminTools(AdminCog, command_attrs=dict(hidden=True)):
+class AdminTools(AdminCog, command_attrs={'hidden': True}):
     """Admin-only commands: reboot the bot, speak as the bot"""
 
     @commands.command()
@@ -22,14 +22,14 @@ class AdminTools(AdminCog, command_attrs=dict(hidden=True)):
         await self.bot.close()
 
     @commands.command()
-    async def speak(self, ctx, message, channel: discord.TextChannel = None, guild: str = None):
+    async def speak(self, ctx, message, channel: discord.TextChannel = None, guild: str | None = None):
         """Speak as the bot"""
         if guild is None:
             guild = ctx.guild
         else:
             try:
-                guild = [i for i in self.bot.guilds if i.name == guild][0]
-            except IndexError:
+                guild = next(i for i in self.bot.guilds if i.name == guild)
+            except StopIteration:
                 await ctx.send(f'ERROR: server "{guild}" not found.')
                 return
         if channel:

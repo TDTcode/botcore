@@ -45,15 +45,15 @@ def find_channel(guild, channel=None, default=None, aliases=None):
     try:
         channel = int(channel)
         try:
-            return [i for i in guild.channels if i.id == channel][0]
-        except IndexError:
+            return next(i for i in guild.channels if i.id == channel)
+        except StopIteration:
             return
     except ValueError:
         pass
     try:
-        return [i for i in guild.channels
-                if i.name.lower().strip() == channel.lower().strip()][0]
-    except IndexError:
+        return next(i for i in guild.channels
+                if i.name.lower().strip() == channel.lower().strip())
+    except StopIteration:
         pass
     if channel.startswith('#'):
         return find_channel(guild, channel.lstrip('#'), aliases=aliases)
@@ -68,10 +68,10 @@ def find_role(guild, name):
     """Find a role in a guild by id (int) or case-insensitive name"""
     try:
         if isinstance(name, int):
-            return [i for i in guild.roles if i.id == name][0]
+            return next(i for i in guild.roles if i.id == name)
         else:
-            return [i for i in guild.roles if i.name.lower() == name.lower()][0]
-    except IndexError:
+            return next(i for i in guild.roles if i.name.lower() == name.lower())
+    except StopIteration:
         return
 
 
@@ -88,37 +88,37 @@ def valid_url(url):
     return re.match(_regex, url) is not None
 
 
-_filetypes = dict(jpg="image/jpeg",
-                  jpeg="image/jpeg",
-                  jpx="image/jpx",
-                  png="image/png",
-                  gif="image/gif",
-                  webp="image/webp",
-                  cr2="image/x-canon-cr2",
-                  tif="image/tiff",
-                  bmp="image/bmp",
-                  jxr="image/vnd.ms-photo",
-                  psd="image/vnd.adobe.photoshop",
-                  ico="image/x-icon",
-                  heic="image/heic",
-                  mp4="video/mp4",
-                  m4v="video/x-m4v",
-                  mkv="video/x-matroska",
-                  webm="video/webm",
-                  mov="video/quicktime",
-                  avi="video/x-msvideo",
-                  wmv="video/x-ms-wmv",
-                  mpg="video/mpeg",
-                  mpeg="video/mpeg",
-                  flv="video/x-flv",
-                  mid="audio/midi",
-                  mp3="audio/mpeg",
-                  m4a="audio/m4a",
-                  ogg="audio/ogg",
-                  flac="audio/x-flac",
-                  wav="audio/x-wav",
-                  amr="audio/amr",
-                  )
+_filetypes = {'jpg': "image/jpeg",
+              'jpeg': "image/jpeg",
+              'jpx': "image/jpx",
+              'png': "image/png",
+              'gif': "image/gif",
+              'webp': "image/webp",
+              'cr2': "image/x-canon-cr2",
+              'tif': "image/tiff",
+              'bmp': "image/bmp",
+              'jxr': "image/vnd.ms-photo",
+              'psd': "image/vnd.adobe.photoshop",
+              'ico': "image/x-icon",
+              'heic': "image/heic",
+              'mp4': "video/mp4",
+              'm4v': "video/x-m4v",
+              'mkv': "video/x-matroska",
+              'webm': "video/webm",
+              'mov': "video/quicktime",
+              'avi': "video/x-msvideo",
+              'wmv': "video/x-ms-wmv",
+              'mpg': "video/mpeg",
+              'mpeg': "video/mpeg",
+              'flv': "video/x-flv",
+              'mid': "audio/midi",
+              'mp3': "audio/mpeg",
+              'm4a': "audio/m4a",
+              'ogg': "audio/ogg",
+              'flac': "audio/x-flac",
+              'wav': "audio/x-wav",
+              'amr': "audio/amr",
+              }
 
 
 def parse_filetype(filepath: str, force_list=True):
@@ -127,19 +127,19 @@ def parse_filetype(filepath: str, force_list=True):
     try:
         return [ext, _filetypes[ext]]
     except KeyError:
-        for ext in _filetypes:
+        for ext, mime in _filetypes.items():
             if filepath.endswith(ext):
-                return [ext, _filetypes[ext]]
+                return [ext, mime]
     if force_list:
         return []
 
 
 def parse_message(message):
     """Summarise a message: urls, attachments (with types), content, and a type list"""
-    out = dict()
+    out = {}
     out['urls'] = [i for i in message.content.split(' ') if valid_url(i)]
     try:
-        out['attachments'] = [[i] + parse_filetype(i.filename, force_list=True)
+        out['attachments'] = [[i, *parse_filetype(i.filename, force_list=True)]
                               for i in message.attachments]
     except TypeError:
         logger.error(str(message.attachments))
@@ -152,7 +152,7 @@ def parse_message(message):
     _type += [i[-1] for i in out['attachments']]
     if not _type:
         _type = ['normal']
-    _type = sorted(list(set(_type)))
+    _type = sorted(set(_type))
     out['type'] = _type
     return out
 
@@ -234,13 +234,11 @@ def parse_timezone(tz, self_call=False, check_abbr=True):
         pass
     if check_abbr is True:
         check_abbr = _tz_abbreviations
-    if check_abbr:
-        if tz.lower() in check_abbr:
-            return pytz.timezone(check_abbr[tz.lower()])
-    if not self_call:
-        if ' ' in tz:
-            return parse_timezone(tz.replace(' ', '_'), self_call=True,
-                                  check_abbr=check_abbr)
+    if check_abbr and tz.lower() in check_abbr:
+        return pytz.timezone(check_abbr[tz.lower()])
+    if not self_call and ' ' in tz:
+        return parse_timezone(tz.replace(' ', '_'), self_call=True,
+                              check_abbr=check_abbr)
     return pytz.timezone(tz)
 
 

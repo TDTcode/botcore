@@ -36,6 +36,7 @@ line-length = 120
 select = [
     "F",      # pyflakes
     "E4", "E7", "E9",  # pycodestyle: imports, statements, syntax/runtime errors
+    "E501",   # line too long (limit: line-length = 120)
     "W6",     # pycodestyle: deprecated features
     "I",      # isort
     "UP",     # pyupgrade

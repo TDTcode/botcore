@@ -72,7 +72,7 @@ def deployed(tmp_path, monkeypatch):
 def publish(origin, version, broken=False):
     write_version(Path(origin.working_tree_dir), version, broken)
     origin.index.add(['bot.py'])
-    origin.index.commit('v{0}{1}'.format(version, ' (broken)' if broken else ''))
+    origin.index.commit('v{}{}'.format(version, ' (broken)' if broken else ''))
 
 
 class TestParser:
@@ -252,7 +252,7 @@ class TestRun:
         _, name, _ = deployed
         from aiohttp.client_exceptions import ClientConnectorError
         slept = []
-        monkeypatch.setattr(runner_module.time, 'sleep', lambda s: slept.append(s))
+        monkeypatch.setattr(runner_module.time, 'sleep', slept.append)
         runs = []
 
         class Flaky(Runner):

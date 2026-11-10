@@ -85,8 +85,8 @@ class UpdateResult:
             lines = [f'  {sha}  {subject}' for sha, subject in self.replayed[:MAX_LISTED]]
             if len(self.replayed) > MAX_LISTED:
                 lines.append(f'  ... and {len(self.replayed) - MAX_LISTED} more')
-            return ('Update rebased {0} local commit(s) onto {1} ({2}..{3}); '
-                    'their hashes have changed (old hashes below):\n{4}').format(
+            return ('Update rebased {} local commit(s) onto {} ({}..{}); '
+                    'their hashes have changed (old hashes below):\n{}').format(
                         len(self.replayed), self.upstream, self.before[:7], self.after[:7],
                         '\n'.join(lines))
         return None

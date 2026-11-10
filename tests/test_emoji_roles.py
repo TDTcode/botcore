@@ -96,6 +96,19 @@ async def test_guild_given_as_an_id_is_looked_up_by_id(setup):
     assert result is r1
 
 
+@pytest.mark.parametrize(('guild_arg', 'payload_guild_id'), [
+    (None, None),    # no guild given and the payload has none (e.g. a DM reaction)
+    (None, 999),     # no guild given and the payload's guild is not one of the bot's
+    (999, 12),       # an unknown guild id given explicitly
+])
+async def test_unknown_guild_raises_lookuperror(setup, guild_arg, payload_guild_id):
+    bot, member, guild, r1, _ = setup
+    p = payload(member, guild)
+    p.guild_id = payload_guild_id
+    with pytest.raises(LookupError):
+        await bot.emoji2role(p, {'🙂': r1.id}, guild=guild_arg)
+
+
 async def test_unresolvable_member_is_logged_and_skipped(setup, caplog):
     bot, member, guild, r1, _ = setup
     p = types.SimpleNamespace(message_id=None, guild_id=guild.id, emoji='🙂', member=None,

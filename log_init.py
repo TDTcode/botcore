@@ -48,7 +48,7 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
             self._log(levelNum, message, args, **kwargs)
 
     def logToRoot(message, *args, **kwargs):
-        logging.log(levelNum, message, *args, **kwargs)
+        logging.log(levelNum, message, *args, **kwargs)  # noqa: LOG015  (this is the module-level shortcut, e.g. logging.trace)
 
     logging.addLevelName(levelNum, levelName)
     setattr(logging, levelName, levelNum)

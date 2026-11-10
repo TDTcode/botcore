@@ -28,7 +28,7 @@ class DataContainer:
 
     def __init__(self, fn):
         self.fn = os.fspath(fn)
-        self.data = dict()
+        self.data = {}
         self._file_data = self._load_own_data()
         if self._file_data is not None:
             for i in self._file_data:
@@ -161,7 +161,7 @@ class IntPermaDict(PermaDict):
         self.file[str(int(key))] = value
 
     def keys(self):
-        return [int(k) for k in self.file.keys()]
+        return [int(k) for k in self.file]
 
 
 class UserConfig(DataContainer):

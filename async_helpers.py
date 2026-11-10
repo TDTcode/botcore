@@ -45,7 +45,7 @@ async def split_send(channel, message, deliminator='\n', n=2000, style='', sopt=
         else:
             msg += deliminator + tmp
     if sopt is None:
-        sopt = dict()
+        sopt = {}
     out.append(await channel.send(style + msg + style, **sopt))
     return out
 
@@ -81,9 +81,7 @@ async def admin_check(ctx=None, bot=None, author=None, guild=None):
         return await is_admin(author, guild)
     if guild is not None and guild.owner == author:
         return True
-    if bot is not None and await bot.is_owner(author):
-        return True
-    return False
+    return bool(bot is not None and await bot.is_owner(author))
 
 
 async def wait_until(dt):
@@ -122,11 +120,11 @@ async def parse_payload(payload, bot, *fields):
             if j not in fields:
                 fields.append(j)
 
-    out = dict()
+    out = {}
     if "guild" in fields:
         try:
-            out["guild"] = [g for g in bot.guilds if g.id == payload.guild_id][0]
-        except IndexError:
+            out["guild"] = next(g for g in bot.guilds if g.id == payload.guild_id)
+        except StopIteration:
             out['guild'] = await bot.fetch_guild(payload.guild_id)
     if "member" in fields:
         member = payload.member

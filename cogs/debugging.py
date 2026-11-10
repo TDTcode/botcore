@@ -14,7 +14,7 @@ async def _owner(ctx):
     return await ctx.bot.is_owner(ctx.author)
 
 
-class Debugging(AdminCog, command_attrs=dict(hidden=True)):
+class Debugging(AdminCog, command_attrs={'hidden': True}):
     """Cog designed for debugging the bot"""
 
     async def _find_guild(self, ctx, guild):
@@ -22,12 +22,12 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
         if guild is None:
             return ctx.guild
         try:
-            return [i for i in self.bot.guilds if i.name == guild][0]
-        except IndexError:
+            return next(i for i in self.bot.guilds if i.name == guild)
+        except StopIteration:
             await ctx.send(f'ERROR: server "{guild}" not found.')
 
     @commands.command()
-    async def channel_id(self, ctx, channel: discord.TextChannel = None, guild: str = None):
+    async def channel_id(self, ctx, channel: discord.TextChannel = None, guild: str | None = None):
         """<channel (optional)> <server (optional)> shows the id of a channel"""
         guild = await self._find_guild(ctx, guild)
         if guild is None:
@@ -39,7 +39,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
         await ctx.send(f'Channel "{channel.name}" has id {channel.id}.')
 
     @commands.command()
-    async def member_id(self, ctx, member: str = None, guild: str = None):
+    async def member_id(self, ctx, member: str | None = None, guild: str | None = None):
         """<member (optional)> <server (optional)> shows the id of a member"""
         guild = await self._find_guild(ctx, guild)
         if guild is None:
@@ -152,7 +152,7 @@ class Debugging(AdminCog, command_attrs=dict(hidden=True)):
     async def exec(self, ctx, *args):
         """<code> - Execute code. Items in `out` get printed to discord."""
         out = []
-        var_data = dict(out=out, self=self)  # noqa: F841  (read implicitly by exec below)
+        var_data = {'out': out, 'self': self}  # noqa: F841  (read implicitly by exec below)
         cmd = ' '.join(args).strip().strip('`"\'')
         await ctx.send("Running the following code:\n```\n" + cmd + "\n```")
         exec(cmd)

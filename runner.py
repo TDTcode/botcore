@@ -114,7 +114,7 @@ class Runner:
         try:
             before = git.head()
             result = git.update()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001  (any update failure is logged and reported, never fatal)
             logger.error('Update failed: %s', e)
             self.notices.append(f'Update failed: {e}')
         else:
@@ -135,8 +135,8 @@ class Runner:
         git.rollback(before)
         self.purge_modules()
         logger.warning('Rolled back to the previous commit.')
-        self.notices.append(f'The update to {failed[:7]} failed to import ({type(error).__name__}: {error}); rolled back to {before[:7]}.'
-                            )
+        self.notices.append(f'The update to {failed[:7]} failed to import '
+                            f'({type(error).__name__}: {error}); rolled back to {before[:7]}.')
         return self.import_bot()
 
     # -- running ---------------------------------------------------------------

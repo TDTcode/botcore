@@ -178,5 +178,5 @@ class Config(dict):
     def public_items(self):
         """Items that are safe to print to chat/logs (no token/secret-ish keys)."""
         return {k: v for k, v in self.items()
-                if k not in ('roasts',) and not any(s in str(k).lower()
+                if k != 'roasts' and not any(s in str(k).lower()
                                                     for s in ('token', 'secret', 'password'))}

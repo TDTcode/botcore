@@ -183,7 +183,7 @@ class BotCore(commands.Bot):
             try:
                 synced = await self.tree.sync()
                 logger.info('Synced %d app commands.', len(synced))
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001  (a failed sync must never stop the bot starting)
                 logger.error('Error syncing commands: %s', e)
 
     async def on_ready(self):
@@ -295,9 +295,7 @@ class BotCore(commands.Bot):
     async def bot_check(self, ctx):
         """Run a check to see if we should respond to the given command."""
         # DM channels do not have a ``name`` attribute; commands stay available there.
-        if getattr(ctx.channel, 'name', None) in (self.config('ignore_list') or []):
-            return False
-        return True
+        return getattr(ctx.channel, 'name', None) not in (self.config('ignore_list') or [])
 
     # -- lookups ----------------------------------------------------------------
     def find_channel(self, channel):
@@ -355,8 +353,8 @@ class BotCore(commands.Bot):
             guild = guild.guild
         if isinstance(guild, int):
             try:
-                guild = [i for i in self.guilds if i.id == guild][0]
-            except IndexError:
+                guild = next(i for i in self.guilds if i.id == guild)
+            except StopIteration:
                 guild = None
         if guild is not None:
             out = guild.get_member(user_id)

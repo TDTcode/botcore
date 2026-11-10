@@ -4,7 +4,7 @@ from ..async_helpers import git_log as send_git_log
 from ..cog import AdminCog
 
 
-class GitTools(AdminCog, command_attrs=dict(hidden=True)):
+class GitTools(AdminCog, command_attrs={'hidden': True}):
     """Git commands for the bot's own checkout"""
 
     @commands.command()

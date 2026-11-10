@@ -66,9 +66,8 @@ class EmojiRoles:
         """
         bot = self.bot
         # ensure that the payload is valid
-        if message_id is not None:
-            if payload.message_id != message_id:
-                return
+        if message_id is not None and payload.message_id != message_id:
+            return
         # get the author of the reaction
         author = getattr(getattr(payload, "member", None), "id", None)
         uid = getattr(payload, "user_id", None)
@@ -80,17 +79,20 @@ class EmojiRoles:
             return
         # make sure we have a guild and member
         if guild is None:
-            guild = [g for g in bot.guilds if g.id == payload.guild_id][0]
-        if isinstance(guild, int):
-            guild = [g for g in bot.guilds if g.id == guild][0]
+            guild = payload.guild_id
+        if guild is None or isinstance(guild, int):  # None: payload had no guild (e.g. a DM)
+            guild_id = guild
+            guild = next((g for g in bot.guilds if g.id == guild_id), None)
+            if guild is None:
+                raise LookupError(f"guild {guild_id} not found among the bot's guilds")
         if member is None:
             member = getattr(payload, "member", None)
             if member is None:
                 member = await bot.get_or_fetch_user(payload.user_id, guild)
         # if member is None, we can't do anything, so log it
         if member is None:
-            data = dict(payload=payload, emoji_dict=emoji_dict, emoji=emoji, message_id=message_id,
-                        guild=guild, min_role=min_role, delete=delete, remove=remove)
+            data = {'payload': payload, 'emoji_dict': emoji_dict, 'emoji': emoji, 'message_id': message_id,
+                     'guild': guild, 'min_role': min_role, 'delete': delete, 'remove': remove}
             data = {i: j for i, j in data.items() if j is not None}
             msg = "Member is None object"
             msg += '\n' + '\n'.join([f'{i}: {j}' for i, j in data.items()])
@@ -121,12 +123,11 @@ class EmojiRoles:
                 if not isinstance(remove, list) and not isinstance(remove, tuple):
                     remove = [remove]
 
-                for i in remove:
-                    if not isinstance(i, discord.Role):
-                        i = helpers.find_role(guild, i)
-                    if i == role:
+                for item in remove:
+                    old_role = item if isinstance(item, discord.Role) else helpers.find_role(guild, item)
+                    if old_role == role:
                         continue
-                    await member.remove_roles(i)
+                    await member.remove_roles(old_role)
             try:
                 if delete:
                     logger.info(f'Delete (role): {key}->{role0}->{role}')

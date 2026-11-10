@@ -85,7 +85,7 @@ class TestUpdate:
         # linear history: upstream commit, then the replayed local commit on top
         assert [c.message.strip() for c in work.iter_commits()][:3] == \
             ['my local tweak', 'upstream change', 'first commit']
-        assert gm.head() != before and not work.head.commit.parents[0].hexsha == before
+        assert gm.head() != before and work.head.commit.parents[0].hexsha != before
         assert (Path(work.working_tree_dir) / 'b.txt').read_text() == 'local only'
         assert (Path(work.working_tree_dir) / 'a.txt').read_text() == 'origin change'
         # ...and it says so
