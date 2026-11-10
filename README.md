@@ -148,13 +148,11 @@ async def setup(bot):
 
 ## Tests
 
-From this directory, with the dependencies from `pyproject.toml` plus the test tools
-installed, e.g. with [uv](https://docs.astral.sh/uv/):
+From this directory, with [uv](https://docs.astral.sh/uv/) (see [Development](#development)):
 
 ```sh
-uv venv
-uv pip install discord.py gitpython humanize pytz pytest pytest-asyncio
-.venv/bin/python -m pytest
+uv sync
+uv run pytest
 ```
 
 `pyproject.toml` puts the parent directory on `sys.path`, so `import botcore` works.
@@ -166,6 +164,30 @@ from .botcore import testing
 bot = testing.make_bot(MainBot)
 testing.assert_least_privilege(bot, members=True)  # TDT; wit: members=False
 ```
+
+## Development
+
+Dependencies are locked in `uv.lock`. From this directory:
+
+```sh
+uv sync                      # install the locked dependencies, including the dev tools
+uv run pytest                # tests
+uv run ruff check .          # lint (rules, 120-character lines)
+uv run ruff format .         # format (double quotes); CI runs `ruff format --check .`
+```
+
+All of this is configured in `pyproject.toml`. CI (`.github/workflows/ci.yml`) runs the lint and
+format checks, and the tests on Python 3.11-3.13.
+
+**`git blame`:** the repo-wide reformat is listed in `.git-blame-ignore-revs`, so GitHub's blame view
+skips it automatically. Git does not carry config over in a clone, so enable it once per clone to get
+the same locally:
+
+```sh
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+(Don't set this globally: `git blame` fails in any repo that lacks the file.)
 
 ## Compatibility rule
 
