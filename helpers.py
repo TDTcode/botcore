@@ -141,10 +141,10 @@ def parse_message(message):
     try:
         out['attachments'] = [[i] + parse_filetype(i.filename, force_list=True)
                               for i in message.attachments]
-    except TypeError as e:
+    except TypeError:
         logger.error(str(message.attachments))
         logger.error(str([parse_filetype(i.filename) for i in message.attachments]))
-        raise e
+        raise
     out['content'] = message.content
     _type = []
     if out['urls']:

@@ -57,7 +57,8 @@ async def sleep(dt):
         await asyncio.sleep(dt)
     except discord.HTTPException:
         dt -= (datetime.datetime.now() - now).total_seconds()
-        time.sleep(dt)
+        # deliberately blocking: the async sleep just failed, so retrying it could fail the same way
+        time.sleep(max(dt, 0))  # noqa: ASYNC251  (max: time.sleep rejects negative values)
 
 
 async def admin_check(ctx=None, bot=None, author=None, guild=None):

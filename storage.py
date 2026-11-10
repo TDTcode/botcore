@@ -112,7 +112,7 @@ class PermaDict:
 
     def __init__(self, fn):
         self.fn = os.fspath(fn)
-        self.file = shelve.open(self.fn)
+        self.file = shelve.open(self.fn)  # noqa: SIM115  (held open for the object's lifetime; see close())
 
     def close(self):
         file = self.__dict__.pop('file', None)

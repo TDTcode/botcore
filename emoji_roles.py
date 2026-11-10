@@ -39,7 +39,8 @@ class EmojiRoles:
         if not args:
             raise ValueError("Must provide at least one argument")
         if not isinstance(args[0], dict):
-            raise ValueError("First argument must be a dict")
+            # ValueError (not TypeError) is the established contract, and is tested
+            raise ValueError("First argument must be a dict")  # noqa: TRY004
         self._rules.append((args, kwargs))
 
     async def handle(self, payload, delete=False):
