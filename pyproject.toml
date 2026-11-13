@@ -1,6 +1,6 @@
 # Dependencies + tool config ONLY. There is deliberately no [build-system]:
-# botcore is vendored into each bot as `<bot>/botcore/` (a plain directory now, a
-# git submodule later) and imported relatively, not pip-installed.
+# botcore is vendored into each bot as `<bot>/botcore/` (a git submodule) and
+# imported relatively, not pip-installed.
 [project]
 name = "botcore"
 version = "0.1.0"
