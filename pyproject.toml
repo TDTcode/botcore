@@ -66,6 +66,10 @@ ignore = [
     "SIM105", "SIM108",  # opinionated rewrites
 ]
 
+[tool.ruff.lint.pylint]
+# BotCore is the base class both bots build on; PLR0904 (a preview rule) defaults to 20
+max-public-methods = 30
+
 [tool.ruff.lint.per-file-ignores]
 # the debugging cog exists to exec arbitrary code for admins
 "cogs/debugging.py" = ["S102"]

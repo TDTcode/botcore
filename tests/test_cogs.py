@@ -386,6 +386,20 @@ class TestSharedCogs:
             del type(bot).extensions
         assert reloaded == ["x.cogs.a", "x.cogs.b"] and ctx.sent == ["Reloading a, b"]
 
+    async def test_reload_extension_command_awaits_the_reload_and_confirms(self, loaded):
+        # regression: the command had no `ctx` parameter and never awaited the reload
+        bot = await loaded()
+        reloaded = []
+
+        async def reload_extension(name, **kw):
+            reloaded.append(name)
+
+        bot.reload_extension = reload_extension
+        cog = bot.cogs["Debugging"]
+        ctx = FakeCtx(bot)
+        await cog.reload_extension.callback(cog, ctx, "x.cogs.a")
+        assert reloaded == ["x.cogs.a"] and ctx.sent == ["Reloaded x.cogs.a"]
+
     async def test_reload_cogs_pull_does_not_reload_after_a_failed_update(self, loaded):
         bot = await loaded()
         reloaded = []
