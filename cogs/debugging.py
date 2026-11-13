@@ -4,7 +4,7 @@ import discord  # type: ignore
 from discord.ext import commands  # type: ignore
 
 from ..async_helpers import split_send
-from ..cog import AdminCog
+from ..cog import AdminCog, slash_admin_only
 from ..helpers import find_channel
 
 logger = logging.getLogger("discord." + __name__)
@@ -26,9 +26,10 @@ class Debugging(AdminCog, command_attrs={"hidden": True}):
         except StopIteration:
             await ctx.send(f'ERROR: server "{guild}" not found.')
 
-    @commands.command()
+    @commands.hybrid_command()
+    @slash_admin_only
     async def channel_id(self, ctx, channel: discord.TextChannel = None, guild: str | None = None):
-        """<channel (optional)> <server (optional)> shows the id of a channel"""
+        """Show the id of a channel (default: this one)"""
         guild = await self._find_guild(ctx, guild)
         if guild is None:
             return
@@ -38,9 +39,10 @@ class Debugging(AdminCog, command_attrs={"hidden": True}):
             channel = ctx.channel
         await ctx.send(f'Channel "{channel.name}" has id {channel.id}.')
 
-    @commands.command()
+    @commands.hybrid_command()
+    @slash_admin_only
     async def member_id(self, ctx, member: str | None = None, guild: str | None = None):
-        """<member (optional)> <server (optional)> shows the id of a member"""
+        """Show the id of a member (default: you)"""
         guild = await self._find_guild(ctx, guild)
         if guild is None:
             return
@@ -53,9 +55,11 @@ class Debugging(AdminCog, command_attrs={"hidden": True}):
             member = ctx.author
         await ctx.send(f"{member.name} has id {member.id}.")
 
-    @commands.command()
-    async def reload_cogs(self, ctx, option=None):
+    @commands.hybrid_command()
+    @slash_admin_only
+    async def reload_cogs(self, ctx, option: str | None = None):
         """Reloads all cogs that were added as extensions ('pull' to git pull first)"""
+        await ctx.defer()  # a slash command has 3 seconds to answer; pulling and reloading can take longer
         pulled = None
         if option == "pull":
             pulled = await self.bot.pull_code(ctx.channel)
@@ -68,13 +72,17 @@ class Debugging(AdminCog, command_attrs={"hidden": True}):
             await self.bot.reload_extension(i)
         await ctx.send((pulled.summary() + "\n" if pulled is not None else "") + msg)
 
-    @commands.command()
-    async def print(self, ctx, *args):
-        """Print text following command to terminal. This is useful for emojis."""
-        logger.info(" ".join(args))
+    @commands.hybrid_command()
+    @slash_admin_only
+    async def print(self, ctx, *, text: str):
+        """Print the text to the terminal. This is useful for emojis."""
+        logger.info(text)
+        if ctx.interaction is not None:  # a slash command must be answered
+            await ctx.send("Printed.", ephemeral=True)
 
-    @commands.command(name="param", aliases=["config"])
-    async def param(self, ctx, *args):
+    @commands.hybrid_command(name="param", aliases=["config"])
+    @slash_admin_only
+    async def param(self, ctx):
         """Print the bot's config to discord chat (secrets are left out)."""
         items = self.bot.config.public_items()
         if items:
@@ -83,15 +91,17 @@ class Debugging(AdminCog, command_attrs={"hidden": True}):
         else:
             await ctx.send("Param is empty.")
 
-    @commands.command()
-    async def reload_extension(self, ctx, name):
-        """<name> - Reloads an extension"""
+    @commands.hybrid_command()
+    @slash_admin_only
+    async def reload_extension(self, ctx, name: str):
+        """Reload an extension"""
         await self.bot.reload_extension(name)
         await ctx.send("Reloaded " + name)
 
-    @commands.command()
+    @commands.hybrid_command()
+    @slash_admin_only
     async def id_this(self, ctx):
-        """Prints the id of message, ser, and channel"""
+        """Print the ids of the message (or the one it replies to), server and channel"""
         ref = ctx.message.reference
         msg = ctx.message
         if ref:
@@ -118,9 +128,11 @@ class Debugging(AdminCog, command_attrs={"hidden": True}):
             txt.append(f"author id: {a.id}")
         await split_send(ctx, txt)
 
-    @commands.command()
+    @commands.hybrid_command()
+    @slash_admin_only
     async def channel_hist(self, ctx, channel: discord.TextChannel = None, n: int = 10):
-        """<channel (optional)> shows channel history (past 10 entries)"""
+        """Show the channel's history (default: this channel, past 10 entries)"""
+        await ctx.defer()
         if channel:
             channel = find_channel(ctx.guild, channel)
         else:
@@ -131,9 +143,11 @@ class Debugging(AdminCog, command_attrs={"hidden": True}):
             msg = ["No history available."]
         await split_send(ctx, msg)
 
-    @commands.command()
+    @commands.hybrid_command()
+    @slash_admin_only
     async def channel_pins(self, ctx, channel: discord.TextChannel = None):
-        """<channel (optional)> shows channel pins"""
+        """Show the channel's pins (default: this channel)"""
+        await ctx.defer()
         if channel:
             if hasattr(channel, "lower"):
                 channel = find_channel(ctx.guild, channel)
@@ -145,13 +159,14 @@ class Debugging(AdminCog, command_attrs={"hidden": True}):
             msg = ["No pins available."]
         await split_send(ctx, msg)
 
-    @commands.command()
+    @commands.hybrid_command()
+    @slash_admin_only
     @commands.check(_owner)
-    async def exec(self, ctx, *args):
-        """<code> - Execute code. Items in `out` get printed to discord."""
+    async def exec(self, ctx, *, code: str):
+        """Execute code. Items in `out` get printed to discord."""
         out = []
         var_data = {"out": out, "self": self}  # noqa: F841  (read implicitly by exec below)
-        cmd = " ".join(args).strip().strip("`\"'")
+        cmd = code.strip().strip("`\"'")
         await ctx.send("Running the following code:\n```\n" + cmd + "\n```")
         exec(cmd)
         if out:

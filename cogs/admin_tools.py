@@ -3,7 +3,7 @@ import logging
 import discord  # type: ignore
 from discord.ext import commands  # type: ignore
 
-from ..cog import AdminCog
+from ..cog import AdminCog, slash_admin_only
 from ..helpers import find_channel
 
 logger = logging.getLogger("discord." + __name__)
@@ -12,7 +12,8 @@ logger = logging.getLogger("discord." + __name__)
 class AdminTools(AdminCog, command_attrs={"hidden": True}):
     """Admin-only commands: reboot the bot, speak as the bot"""
 
-    @commands.command()
+    @commands.hybrid_command()
+    @slash_admin_only
     async def reboot(self, ctx):
         """Reboots this bot"""
         await ctx.send("Ok. I will reboot now.")
@@ -21,7 +22,8 @@ class AdminTools(AdminCog, command_attrs={"hidden": True}):
         # This exits the bot loop, allowing the runner's loop to take over
         await self.bot.close()
 
-    @commands.command()
+    @commands.hybrid_command()
+    @slash_admin_only
     async def speak(self, ctx, message, channel: discord.TextChannel = None, guild: str | None = None):
         """Speak as the bot"""
         if guild is None:
@@ -37,6 +39,8 @@ class AdminTools(AdminCog, command_attrs={"hidden": True}):
         else:
             channel = ctx.channel
         await channel.send(message)
+        if ctx.interaction is not None:  # a slash command must be answered; nothing else is shown to the caller
+            await ctx.send("Sent.", ephemeral=True)
 
 
 async def setup(bot):

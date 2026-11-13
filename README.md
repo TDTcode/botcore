@@ -103,7 +103,7 @@ The update happens while no bot is connected, so the runner passes the text to t
 | Attribute | Default | Meaning |
 |---|---|---|
 | `activity_name` / `activity_type` | `None` / `playing` | presence |
-| `sync_app_commands` | `False` | sync the app-command tree once at start-up |
+| `sync_app_commands` | `False` | sync the app-command tree once at start-up (the shared cogs' commands are all hybrid: they only show up as slash commands after a sync) |
 | `emoji_roles_enabled` | `False` | handle raw reactions with `bot.emoji_roles` |
 | `core_cogs` | `git_tools, admin_tools, debugging, privacy` | shared cogs to load (after the bot's own) |
 | `exclude_cogs` | `()` | cog module names (own or shared) not to load |
@@ -137,7 +137,7 @@ class Hello(CoreCog):
     async def after_ready(self):  # replaces on_ready + sleep(5) + _async_init
         await self.log_channel.send("hello is up")
 
-    @commands.command()
+    @commands.hybrid_command()  # works as `<prefix>hi` and, once the tree is synced, as `/hi`
     async def hi(self, ctx):
         await ctx.send("hi")
 

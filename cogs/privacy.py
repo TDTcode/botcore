@@ -18,7 +18,7 @@ class Privacy(CoreCog):
         override = self.bot.config("privacy_file")
         return Path(override) if override else self.bot.paths.root / "PRIVACY.md"
 
-    @commands.command(aliases=["privacy", "policy"])
+    @commands.hybrid_command(aliases=["privacy", "policy"])
     async def privacy_policy(self, ctx):
         """Display the privacy policy in chat."""
         path = self.policy_path()

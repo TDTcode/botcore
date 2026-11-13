@@ -14,10 +14,19 @@ from .conftest import FakeChannel, FakeGuild
 class FakeCtx(FakeChannel):
     """Stands in for a command Context: ``ctx.send`` collects replies."""
 
-    def __init__(self, bot=None, author=None, guild=None, channel=None):
+    def __init__(self, bot=None, author=None, guild=None, channel=None, interaction=None):
         super().__init__()
         self.bot, self.author, self.guild = bot, author, guild
         self.channel = channel or FakeChannel(50, "cmds")
+        self.interaction = interaction  # None: invoked by a prefix command, like a real Context
+        self.deferred = False
+
+    async def defer(self, **kwargs):
+        self.deferred = True
+
+    async def send(self, content=None, **kwargs):
+        self.send_kwargs = kwargs
+        return await super().send(content, **kwargs)
 
 
 class ReadyBot:
@@ -164,6 +173,108 @@ def loaded(bot):
         return bot
 
     return load
+
+
+class TestHybridCommands:
+    """Every shared command is a hybrid one: it works as a prefix command and as a slash command."""
+
+    @pytest.fixture
+    async def every_command(self, loaded):
+        bot = await loaded()
+        found = []
+        for cog in bot.cogs.values():
+            for cmd in cog.walk_commands():
+                found.append(cmd)
+        return bot, found
+
+    async def test_no_legacy_commands_remain(self, every_command):
+        _, found = every_command
+        assert found
+        assert all(isinstance(c, commands.HybridCommand | commands.HybridGroup) for c in found), [
+            c.qualified_name for c in found if not isinstance(c, commands.HybridCommand | commands.HybridGroup)
+        ]
+
+    async def test_every_command_is_a_valid_app_command(self, every_command):
+        bot, found = every_command
+        for cmd in found:
+            assert cmd.app_command is not None, cmd.qualified_name
+            assert 1 <= len(cmd.app_command.description) <= 100, cmd.qualified_name
+        top = {c.name for c in bot.tree.get_commands()}
+        assert {"reboot", "speak", "git", "git_pull", "git_log", "exec", "param", "privacy_policy"} <= top
+
+    async def test_git_group_keeps_its_subcommands_as_slash_subcommands(self, loaded):
+        bot = await loaded()
+        group = bot.tree.get_command("git")
+        assert {c.name for c in group.commands} == {"pull", "log"}
+
+    async def test_admin_commands_are_hidden_from_non_admins_in_the_slash_picker(self, loaded):
+        bot = await loaded()
+        admin_cmds = {c.name for name in ("AdminTools", "GitTools", "Debugging") for c in bot.cogs[name].get_commands()}
+        assert admin_cmds  # guards the next assertions against passing vacuously
+        for cmd in bot.tree.get_commands():
+            perms = cmd.default_permissions
+            if cmd.name in admin_cmds:
+                assert perms is not None and perms.administrator, cmd.name
+            else:
+                assert perms is None, cmd.name  # e.g. privacy_policy stays visible to everyone
+        assert {c.name for c in bot.tree.get_commands()} >= admin_cmds | {"privacy_policy"}
+
+    async def test_exec_refuses_a_non_owner_admin(self, loaded):
+        bot = await loaded()
+        cog, cmd = bot.cogs["Debugging"], bot.get_command("exec")
+
+        async def is_owner(user):
+            return user == "owner"
+
+        async def is_admin(member, guild=None):
+            return True  # both are admins; only one is the owner
+
+        bot.is_owner, bot.is_admin = is_owner, is_admin
+        for author, allowed in (("owner", True), ("some admin", False)):
+            ctx = FakeCtx(bot, author=author)
+            results = [await cog.cog_check(ctx)] + [await c(ctx) for c in cmd.checks]
+            assert all(results) is allowed, author
+
+    async def test_prefix_aliases_still_work(self, loaded):
+        bot = await loaded()
+        assert bot.get_command("config") is bot.get_command("param")
+        assert bot.get_command("policy") is bot.get_command("privacy_policy")
+
+    async def test_slow_commands_defer(self, loaded):
+        bot = await loaded()
+
+        async def pull_code(channel=None):
+            return UpdateResult("a" * 40, "a" * 40)
+
+        bot.pull_code = pull_code
+        cog = bot.cogs["GitTools"]
+        ctx = FakeCtx(bot)
+        await cog.git_pull.callback(cog, ctx)
+        assert ctx.deferred
+
+    async def test_commands_that_say_nothing_answer_a_slash_invocation(self, loaded):
+        bot = await loaded()
+        admin, debug = bot.cogs["AdminTools"], bot.cogs["Debugging"]
+        ctx = FakeCtx(bot, guild=FakeGuild(1), interaction=object())
+        await admin.speak.callback(admin, ctx, "hello")
+        assert ctx.sent[-1] == "Sent." and ctx.send_kwargs == {"ephemeral": True}
+        ctx = FakeCtx(bot, interaction=object())
+        await debug.print.callback(debug, ctx, text="hi")
+        assert ctx.sent == ["Printed."] and ctx.send_kwargs == {"ephemeral": True}
+
+    async def test_prefix_invocation_stays_silent(self, loaded):
+        bot = await loaded()
+        debug = bot.cogs["Debugging"]
+        ctx = FakeCtx(bot)
+        await debug.print.callback(debug, ctx, text="hi")
+        assert ctx.sent == []
+
+    async def test_exec_and_print_take_the_rest_of_the_line_as_one_argument(self, loaded):
+        bot = await loaded()
+        debug = bot.cogs["Debugging"]
+        ctx = FakeCtx(bot)
+        await debug.exec.callback(debug, ctx, code="`out.append(1 + 1)`")
+        assert ctx.sent[-1].endswith("`2`")
 
 
 class TestSharedCogs:

@@ -25,6 +25,7 @@ Each cog module still ends with the two-line v2 setup function::
 import asyncio
 import logging
 
+from discord import app_commands  # type: ignore
 from discord.ext import commands  # type: ignore
 
 from . import helpers
@@ -92,6 +93,13 @@ class CoreCog(commands.Cog):
         if guild is None:
             guild = self.bot.home_guild()
         return helpers.find_role(guild, ref)
+
+
+#: Hides a hybrid command's *slash* version from everyone but members with the Administrator
+#: permission (server owners can still re-grant it in Server Settings > Integrations).  This only
+#: tidies the slash picker: it is not security.  ``AdminCog.cog_check`` is what refuses non-admins,
+#: so put this decorator *below* ``@commands.hybrid_command()`` on every command of an ``AdminCog``.
+slash_admin_only = app_commands.default_permissions(administrator=True)
 
 
 class AdminCog(CoreCog):
