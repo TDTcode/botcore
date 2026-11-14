@@ -56,3 +56,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - run: uv sync
       - run: uv run pytest
+      # the bots must not depend on the server's timezone: run everything again far from UTC, with DST
+      - run: uv run pytest
+        env:
+          TZ: Pacific/Auckland
