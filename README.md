@@ -146,6 +146,19 @@ async def setup(bot):
     await bot.add_cog(Hello(bot))
 ```
 
+## Timezones
+
+Nothing in the core's *logic* depends on the server's timezone. The convention: **a naive `datetime` is naive UTC**
+(`helpers.epoch`, the argument of `wait_until`, the values `int_time` works on), and aware
+datetimes are used as they are, so `helpers.localize(dt)` only ever attaches UTC to a naive value; it never reads
+the host's local time. discord.py 2 hands out aware UTC datetimes (`message.created_at`). Use
+`datetime.datetime.now(datetime.UTC)` (aware), never `datetime.now()` or the deprecated `datetime.utcnow()` (there is no
+`helpers.utcnow()` any more), and convert to a *named* timezone
+(`parse_timezone(...)`, the `timezone` config key) only for display and scheduling. **The one deliberate exception is the log file:** `%(asctime)s` in `logs/<name>.log` is the server's local time
+(`log_init.LocalTimeFormatter`), so the log reads like the machine's clock. `tests/test_timezones.py` runs the
+helpers under several host timezones (`TZ` + `time.tzset()`, including half-hour offsets and both hemispheres' DST),
+and CI runs the whole suite a second time with `TZ=Pacific/Auckland`.
+
 ## Tests
 
 From this directory, with [uv](https://docs.astral.sh/uv/) (see [Development](#development)):
