@@ -24,11 +24,6 @@ week = datetime.timedelta(days=7)
 month = datetime.timedelta(days=30)
 
 
-def utcnow():
-    """Naive UTC "now".  Same value as the deprecated ``datetime.utcnow()``."""
-    return datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
-
-
 def find_channel(guild, channel=None, default=None, aliases=None):
     """Find a channel in a guild.
 
@@ -179,7 +174,7 @@ def emotes_equal(a, b):
 def int_time(in_time=None, t0=None):
     """Whole seconds between ``t0`` (default: ``epoch``) and ``in_time`` (default: now)"""
     if in_time is None:
-        in_time = utcnow()
+        in_time = datetime.datetime.now(datetime.UTC)
     if t0 is None:
         t0 = epoch
     if isinstance(t0, str) and t0.lower() == "unix":
@@ -247,7 +242,7 @@ def parse_timezone(tz, self_call=False, check_abbr=True):
 
 def localize(dt):
     """Make a datetime UTC-aware.  A naive ``dt`` *is UTC* (the convention everywhere in the bots:
-    ``utcnow()``, ``epoch``, ...), so it just gets the UTC tzinfo; the host's timezone is never used.
+    ``epoch``, stored timestamps, ...), so it just gets the UTC tzinfo; the host's timezone is never used.
     An aware ``dt`` is returned unchanged."""
     if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
         return pytz.utc.localize(dt)

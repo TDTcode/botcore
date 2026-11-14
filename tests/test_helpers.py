@@ -111,15 +111,9 @@ def test_int_time_round_trip():
 
 
 def test_int_time_default_is_roughly_now():
-    # naive-UTC "now" vs the epoch, both interpreted the same way
-    assert abs(helpers.int_time() - helpers.int_time(helpers.utcnow())) <= 1
-
-
-def test_utcnow_is_naive_and_matches_utc():
-    now = helpers.utcnow()
-    assert now.tzinfo is None
-    real = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
-    assert abs((real - now).total_seconds()) < 5
+    now = datetime.datetime.now(datetime.UTC)
+    assert abs(helpers.int_time() - helpers.int_time(now)) <= 1
+    assert abs(helpers.int_time() - helpers.int_time(now.replace(tzinfo=None))) <= 1  # naive means UTC
 
 
 def test_parse_timezone():

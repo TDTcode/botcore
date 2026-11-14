@@ -4,7 +4,7 @@ import types
 
 import pytest
 
-from .. import async_helpers, helpers
+from .. import async_helpers
 from .conftest import FakeChannel, FakeGuild
 
 
@@ -132,7 +132,9 @@ class TestParsePayload:
 
 async def test_wait_until_returns_for_a_near_future_naive_utc_time():
     start = time.monotonic()
-    await async_helpers.wait_until(helpers.utcnow() + datetime.timedelta(seconds=0.05))
+    await async_helpers.wait_until(
+        datetime.datetime.now(datetime.UTC).replace(tzinfo=None) + datetime.timedelta(seconds=0.05)
+    )
     assert 0.0 <= time.monotonic() - start < 2
 
 

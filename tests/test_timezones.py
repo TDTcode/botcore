@@ -1,7 +1,7 @@
 """The bots must behave the same whatever timezone the *server* is set to.
 
-Convention: a naive ``datetime`` anywhere in the bots means **naive UTC** (``helpers.utcnow()``,
-``helpers.epoch``, the ``wait_until`` argument, ...); aware datetimes are used as they are.  The host's
+Convention: a naive ``datetime`` anywhere in the bots means **naive UTC** (``helpers.epoch``,
+the ``wait_until`` argument, ...); aware datetimes are used as they are.  The host's
 local time is never consulted.  Each test runs under several host timezones (``TZ`` + ``time.tzset()``),
 including half-hour offsets and both hemispheres' daylight saving.
 
@@ -100,11 +100,13 @@ def test_int_time_now_matches_the_clock(host_tz):
     assert abs(helpers.int_time(t0="unix") - time.time()) <= 2
 
 
-def test_utcnow_is_utc_whatever_the_host_says(host_tz):
-    assert abs(unix(helpers.utcnow()) - time.time()) <= 2
+NOW_UTC = {
+    "naive": lambda: datetime.datetime.now(datetime.UTC).replace(tzinfo=None),
+    "aware": lambda: datetime.datetime.now(datetime.UTC),
+}
 
 
-@pytest.mark.parametrize("make", [helpers.utcnow, lambda: datetime.datetime.now(datetime.UTC)], ids=["naive", "aware"])
+@pytest.mark.parametrize("make", NOW_UTC.values(), ids=NOW_UTC.keys())
 async def test_wait_until_waits_for_the_given_utc_time_and_no_longer(host_tz, make):
     # west of UTC the old code returned at once, east of UTC it slept for hours
     start = time.monotonic()
@@ -113,7 +115,7 @@ async def test_wait_until_waits_for_the_given_utc_time_and_no_longer(host_tz, ma
 
 
 async def test_wait_until_a_past_time_returns_at_once(host_tz):
-    await asyncio.wait_for(async_helpers.wait_until(helpers.utcnow() - datetime.timedelta(hours=7)), timeout=3)
+    await asyncio.wait_for(async_helpers.wait_until(NOW_UTC["naive"]() - datetime.timedelta(hours=7)), timeout=3)
 
 
 async def test_sleep_fallback_waits_for_the_remainder(host_tz, monkeypatch):
