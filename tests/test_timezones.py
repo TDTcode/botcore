@@ -4,11 +4,14 @@ Convention: a naive ``datetime`` anywhere in the bots means **naive UTC** (``hel
 ``helpers.epoch``, the ``wait_until`` argument, ...); aware datetimes are used as they are.  The host's
 local time is never consulted.  Each test runs under several host timezones (``TZ`` + ``time.tzset()``),
 including half-hour offsets and both hemispheres' daylight saving.
+
+One deliberate exception: log file timestamps are the server's local time (see the last test).
 """
 
 import asyncio
 import calendar
 import datetime
+import logging
 import time
 import types
 
@@ -16,7 +19,7 @@ import discord
 import pytest
 import pytz
 
-from .. import async_helpers, helpers
+from .. import async_helpers, helpers, log_init
 
 pytestmark = pytest.mark.skipif(not hasattr(time, "tzset"), reason="needs time.tzset (not available on Windows)")
 
@@ -124,3 +127,19 @@ async def test_sleep_fallback_waits_for_the_remainder(host_tz, monkeypatch):
     await async_helpers.sleep(5)
     assert len(slept) == 1 and 4.9 <= slept[0] <= 5
 
+
+def test_log_file_timestamps_are_the_servers_local_time(host_tz, tmp_path):
+    """Deliberate exception to "never read local time": log lines carry the server's wall-clock time."""
+    logfile = tmp_path / "bot.log"
+    log_init.init_logging(logfile=str(logfile))
+    logger = logging.getLogger("discord.test_timezones")
+    logger.warning("hello from %s", host_tz)
+    for handler in logging.getLogger("discord").handlers:
+        handler.flush()
+    line = logfile.read_text(encoding="utf-8").splitlines()[-1]
+    stamp = datetime.datetime.strptime(line[:19], "%Y-%m-%d %H:%M:%S")
+    local_now = datetime.datetime.fromtimestamp(time.time())  # host-local, naive
+    assert abs((stamp - local_now).total_seconds()) < 5, (line, local_now)
+    assert line[19:].startswith(",") and ":WARNING:discord.test_timezones: hello from " + host_tz in line
+    for handler in list(logging.getLogger("discord").handlers):
+        handler.close()

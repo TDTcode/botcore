@@ -1,4 +1,5 @@
 import logging
+import time
 
 logger = logging.getLogger("discord")
 
@@ -66,6 +67,17 @@ class CriticalExceptionFilter(logging.Filter):
         return not record.exc_info or record.levelno != logging.CRITICAL
 
 
+class LocalTimeFormatter(logging.Formatter):
+    """Formatter whose ``%(asctime)s`` is the *server's local time* (``time.localtime``).
+
+    Deliberate: it is the one place the bots read the host's timezone (everything else works in UTC, see
+    README "Timezones"), so the log reads like the machine's clock.  Stated explicitly so a changed
+    ``logging.Formatter.converter`` (e.g. to ``time.gmtime``) cannot silently move the log to UTC.
+    """
+
+    converter = time.localtime
+
+
 def init_logging(logfile=None, visual_log_level=logging.PRINTV, verbose=False, **kwargs):
     """Initialize log"""
     # setting this to zero gives output control to handler
@@ -76,7 +88,7 @@ def init_logging(logfile=None, visual_log_level=logging.PRINTV, verbose=False, *
     if logfile:
         f_handler = logging.FileHandler(filename=logfile, encoding="utf-8", mode="a")
         fmt = "%(asctime)s:%(levelname)s:%(name)s: %(message)s"
-        f_handler.setFormatter(logging.Formatter(fmt))
+        f_handler.setFormatter(LocalTimeFormatter(fmt))
         f_handler.setLevel(0)
         logger.addHandler(f_handler)
     c_handler = logging.StreamHandler()  # console/terminal handler
