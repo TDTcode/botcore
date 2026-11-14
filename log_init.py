@@ -78,10 +78,16 @@ class LocalTimeFormatter(logging.Formatter):
     converter = time.localtime
 
 
-def init_logging(logfile=None, visual_log_level=logging.PRINTV, verbose=False, **kwargs):
-    """Initialize log"""
-    # setting this to zero gives output control to handler
+def init_logging(logfile=None, visual_log_level=logging.INFO, verbose=False, **kwargs):
+    """Initialize log.
+
+    ``visual_log_level`` (config key of the same name) is the lowest level that is logged, to the console and
+    to ``logfile``: INFO by default, so the bot's start-up / reboot / update lines show up; use
+    ``logging.PRINTV`` (25) for a quieter log or ``logging.DEBUG`` for a chatty one.
+    """
     logging.basicConfig(level=visual_log_level)
+    # explicit, so it works whatever the root logger looks like (basicConfig does nothing if it has handlers)
+    logger.setLevel(visual_log_level)
     logger.propagate = False  # don't use default handler
     for h in list(logger.handlers):
         logger.removeHandler(h)

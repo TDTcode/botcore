@@ -115,7 +115,8 @@ The update happens while no bot is connected, so the runner passes the text to t
 `cmd_prefix` (default derived from `name`: `WIT$ Wit$ wit$`), `ignore_list`, `log_channel`,
 `admin_role_ids` (top-role ids that count as admin), `home_guild_id`, `channel_aliases`
 (optional name->id mapping for `find_channel`), `privacy_url` / `privacy_file`,
-`emoji_debug_user`, `config_file`, `token_file`, `logfile`, `timezone`, `event_reminders`.
+`emoji_debug_user`, `config_file`, `token_file`, `logfile`, `timezone`, `event_reminders`, `visual_log_level`
+(lowest level logged, to the console and the log file; default `20` = INFO, `25` = quieter, `10` = debug).
 
 Token lookup: `-t` (file or literal) > `<NAME>_TOKEN` / `DISCORD_TOKEN` env > `config/token.txt`.
 

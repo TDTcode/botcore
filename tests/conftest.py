@@ -65,10 +65,14 @@ def _no_bytecode_cache(monkeypatch):
 def _restore_discord_logger():
     """Runner tests call init_logging, which edits the global 'discord' logger."""
     logger = logging.getLogger("discord")
-    handlers, propagate = list(logger.handlers), logger.propagate
+    handlers, propagate, level = list(logger.handlers), logger.propagate, logger.level
     yield
+    for handler in logger.handlers:
+        if handler not in handlers:
+            handler.close()
     logger.handlers[:] = handlers
     logger.propagate = propagate
+    logger.setLevel(level)
 
 
 class FakeChannel:
