@@ -110,14 +110,6 @@ def test_int_time_round_trip():
     assert helpers.int_time(t, unix0) == int(t.timestamp())
 
 
-def test_naive_datetimes_are_treated_as_system_local_time():
-    """Documents an inherited quirk (kept for compatibility, see BOTCORE_MIGRATION_NOTES.md):
-    ``localize`` uses ``astimezone`` semantics for naive input, so ``int_time(x, 'unix')``
-    and ``int_time(x, 0)`` (which build a *naive-UTC* t0) are only right on a UTC host."""
-    naive = datetime.datetime(2020, 5, 1, 12)
-    assert helpers.localize(naive) == naive.astimezone(pytz.utc)
-
-
 def test_int_time_default_is_roughly_now():
     # naive-UTC "now" vs the epoch, both interpreted the same way
     assert abs(helpers.int_time() - helpers.int_time(helpers.utcnow())) <= 1

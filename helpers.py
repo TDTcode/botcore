@@ -14,7 +14,8 @@ import pytz  # type: ignore
 
 logger = logging.getLogger("discord." + __name__)
 
-epoch = datetime.datetime(2000, 1, 1)
+# Naive datetimes in the bots are always naive UTC; the host's timezone is never consulted.
+epoch = datetime.datetime(2000, 1, 1)  # naive UTC
 second = datetime.timedelta(seconds=1)
 minute = datetime.timedelta(seconds=60)
 hour = datetime.timedelta(seconds=3600)
@@ -245,13 +246,11 @@ def parse_timezone(tz, self_call=False, check_abbr=True):
 
 
 def localize(dt):
-    """Make a datetime UTC-aware.  NOTE: a naive ``dt`` is interpreted as *system local*
-    time (``astimezone`` semantics); this is inherited behaviour, kept for compatibility."""
+    """Make a datetime UTC-aware.  A naive ``dt`` *is UTC* (the convention everywhere in the bots:
+    ``utcnow()``, ``epoch``, ...), so it just gets the UTC tzinfo; the host's timezone is never used.
+    An aware ``dt`` is returned unchanged."""
     if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
-        try:
-            return dt.astimezone(pytz.utc)
-        except ValueError:
-            pass
+        return pytz.utc.localize(dt)
     return dt
 
 

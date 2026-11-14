@@ -18,7 +18,7 @@ import time
 
 import discord  # type: ignore
 
-from .helpers import localize, utcnow
+from .helpers import localize
 
 logger = logging.getLogger("discord." + __name__)
 
@@ -53,11 +53,11 @@ async def split_send(channel, message, deliminator="\n", n=2000, style="", sopt=
 
 async def sleep(dt):
     """asyncio.sleep that falls back to a blocking sleep if discord raises mid-sleep"""
-    now = datetime.datetime.now()
+    start = time.monotonic()  # not wall-clock time: immune to timezone / DST / clock changes
     try:
         await asyncio.sleep(dt)
     except discord.HTTPException:
-        dt -= (datetime.datetime.now() - now).total_seconds()
+        dt -= time.monotonic() - start
         # deliberately blocking: the async sleep just failed, so retrying it could fail the same way
         time.sleep(max(dt, 0))  # noqa: ASYNC251  (max: time.sleep rejects negative values)
 
@@ -86,10 +86,10 @@ async def admin_check(ctx=None, bot=None, author=None, guild=None):
 
 
 async def wait_until(dt):
-    """sleep until the specified datetime (assumes UTC)"""
+    """Sleep until the specified datetime: aware, or naive meaning UTC (never the host's local time)."""
+    dt = localize(dt)
     while True:
-        now = localize(utcnow())
-        remaining = (localize(dt) - now).total_seconds()
+        remaining = (dt - datetime.datetime.now(datetime.UTC)).total_seconds()
         if remaining < 86400:
             break
         # asyncio.sleep doesn't like long sleeps, so don't sleep more than a day at a time
