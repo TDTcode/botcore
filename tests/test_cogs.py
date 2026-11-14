@@ -295,10 +295,29 @@ class TestSharedCogs:
             closed.append(1)
 
         bot.close = close
+        cog = bot.cogs["AdminTools"]
         ctx = FakeCtx(bot)
-        await bot.cogs["AdminTools"].reboot.callback(bot.cogs["AdminTools"], ctx)
+        await cog.reboot.callback(cog, ctx)
+        await cog._closing  # the bot is closed from a task, see the next test
         assert bot.reissue is ctx and closed == [1]
         assert ctx.sent == ["Ok. I will reboot now."]
+
+    async def test_reboot_only_starts_closing_after_the_command_has_returned(self, loaded):
+        # discord.py 2's Client.close() sets bot.loop = MISSING, and commands.Bot.invoke still dispatches
+        # "command_completion" after the command returns; closing inline logged an AttributeError traceback
+        # ("'_MissingSentinel' object has no attribute 'create_task'") on every reboot.
+        bot = await loaded()
+        events = []
+
+        async def close():
+            events.append("closed")
+
+        bot.close = close
+        cog = bot.cogs["AdminTools"]
+        await cog.reboot.callback(cog, FakeCtx(bot))
+        events.append("command returned")
+        await cog._closing
+        assert events == ["command returned", "closed"]
 
     async def test_speak(self, loaded):
         bot = await loaded()

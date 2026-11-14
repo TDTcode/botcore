@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import discord  # type: ignore
@@ -19,8 +20,10 @@ class AdminTools(AdminCog, command_attrs={"hidden": True}):
         await ctx.send("Ok. I will reboot now.")
         logger.info("\nRebooting\n\n\n\n")
         self.bot.reissue = ctx
-        # This exits the bot loop, allowing the runner's loop to take over
-        await self.bot.close()
+        # Closing the bot exits the bot loop, allowing the runner's loop to take over.  Do it from a task, after
+        # this command has returned: discord.py 2's close() clears bot.loop, but commands.Bot.invoke still has to
+        # dispatch "command_completion" when we return, which raised an AttributeError on every reboot.
+        self._closing = asyncio.create_task(self.bot.close())  # keep a reference so it cannot be collected
 
     @commands.hybrid_command()
     @slash_admin_only
