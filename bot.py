@@ -255,6 +255,13 @@ class BotCore(commands.Bot):
         for text in notices:
             await self.announce(text)
 
+    async def close(self):
+        """Close the connection, then release the git repo (its helper processes would outlive the bot)."""
+        try:
+            await super().close()
+        finally:
+            self.git.close()
+
     async def pull_code(self, channel=None):
         """Update the bot's own checkout (git runs in a thread, off the event loop).
 

@@ -203,7 +203,10 @@ class Runner:
             reissue, startup = bot.reissue, bot.startup
             git = bot.git
             del bot
-            param, bot_module = self.update_and_reload(git)
+            try:
+                param, bot_module = self.update_and_reload(git)
+            finally:
+                git.close()  # each run builds a new GitManager; don't leave its git helper processes behind
             logger.info("End of loop.")
         return 0
 

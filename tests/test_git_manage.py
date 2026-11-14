@@ -207,6 +207,22 @@ class TestRollback:
         assert gm.head() == before
 
 
+def test_close_releases_the_repo_and_it_reopens_lazily(repos):
+    # GitPython keeps `git cat-file --batch` helper processes alive until the Repo is closed; without close() every
+    # GitManager (the bot builds a new one per reboot) left a pair of them behind until the process ended
+    _, work = repos
+    gm = GitManager(work.working_tree_dir)
+    gm.close()  # never opened: nothing to do
+    repo = gm.repo
+    gm.head()
+    assert repo.git.cat_file_header is not None  # the helper process is running
+    gm.close()
+    assert repo.git.cat_file_header is None and gm._repo is None
+    assert len(gm.head()) == 40  # still usable: it reopens on demand
+    gm.close()
+    gm.close()  # idempotent
+
+
 def test_repo_is_opened_lazily(tmp_path):
     gm = GitManager(tmp_path)  # not a repo: constructing must not fail
     with pytest.raises(git.InvalidGitRepositoryError):

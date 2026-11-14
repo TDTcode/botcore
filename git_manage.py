@@ -107,6 +107,15 @@ class GitManager:
             self._repo = git.Repo(self.root)
         return self._repo
 
+    def close(self):
+        """Release the repo (GitPython's ``git cat-file --batch`` helper processes live until it is closed).
+
+        Safe to call at any time, repeatedly; the repo reopens on demand if the manager is used again.
+        """
+        if self._repo is not None:
+            self._repo.close()
+            self._repo = None
+
     def head(self):
         """Full sha of HEAD (the rollback point)."""
         return self.repo.head.commit.hexsha

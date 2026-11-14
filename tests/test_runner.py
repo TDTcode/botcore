@@ -232,6 +232,29 @@ class TestRun:
         assert seen[0][0] is None
         assert seen[1][0] == "the reboot ctx" and seen[1][1] is not None
 
+    @pytest.mark.parametrize("update_fails", [False, True], ids=["updated", "update-raises"])
+    def test_the_bots_git_manager_is_closed_after_every_update(self, deployed, update_fails):
+        _, name, _ = deployed
+        closed, updated_with = [], []
+        fake_git = types.SimpleNamespace(close=lambda: closed.append(1))
+
+        class Scripted(Runner):
+            def serve(self, bot, token):
+                bot.git = fake_git  # what the runner will hand to update_and_reload
+
+        r = Scripted(name, ["-t", "sekrit", "--no-tracemalloc", "-l", str(Path(deployed[2]) / "x.log")])
+
+        def update_and_reload(git):
+            updated_with.append(git)
+            if update_fails:
+                raise SyntaxError("the new code does not import")
+            raise KeyboardInterrupt  # stop the restart loop
+
+        r.update_and_reload = update_and_reload
+        with pytest.raises(SyntaxError if update_fails else KeyboardInterrupt):
+            r.run()
+        assert updated_with == [fake_git] and closed == [1]
+
     def test_missing_token_exits_2_without_starting_the_bot(self, deployed, monkeypatch):
         _, name, _ = deployed
         for var in ("FAKE_TOKEN", "DISCORD_TOKEN"):

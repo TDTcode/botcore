@@ -163,6 +163,26 @@ class TestGetOrFetchUser:
         assert await b.get_or_fetch_user(1) is None
 
 
+class TestClose:
+    async def test_closing_the_bot_closes_its_git_manager(self, bot):
+        closed = []
+        bot.git = types.SimpleNamespace(close=lambda: closed.append(1))
+        await bot.close()
+        assert closed == [1]
+
+    async def test_git_manager_is_closed_even_if_closing_the_connection_fails(self, bot, monkeypatch):
+        closed = []
+        bot.git = types.SimpleNamespace(close=lambda: closed.append(1))
+
+        async def failing_close(self):
+            raise RuntimeError("boom")
+
+        monkeypatch.setattr(commands.Bot, "close", failing_close)
+        with pytest.raises(RuntimeError, match="boom"):
+            await bot.close()
+        assert closed == [1]
+
+
 class TestChecks:
     async def test_bot_check_is_dm_safe_and_honours_ignore_list(self, bot):
         bot.config["ignore_list"] = ["quiet"]
